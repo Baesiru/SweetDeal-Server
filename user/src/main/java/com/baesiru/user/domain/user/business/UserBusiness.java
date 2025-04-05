@@ -12,6 +12,7 @@ import com.baesiru.user.domain.jwt.model.request.TokenDto;
 import com.baesiru.user.domain.jwt.model.response.TokenResponse;
 import com.baesiru.user.domain.jwt.service.TokenIssueService;
 import com.baesiru.user.domain.user.controller.model.request.*;
+import com.baesiru.user.domain.user.controller.model.response.UserInformationResponse;
 import com.baesiru.user.domain.user.repository.User;
 import com.baesiru.user.domain.user.repository.enums.UserRole;
 import com.baesiru.user.domain.user.repository.enums.UserStatus;
@@ -81,10 +82,7 @@ public class UserBusiness {
     
     @Transactional
     public MessageResponse unRegister(UnregisterRequest unregisterRequest, AuthUser authUser) {
-        User user = userService.findFirstByIdAndStatusOrderByIdDesc(authUser.getUserId());
-        if (!BCrypt.checkpw(unregisterRequest.getPassword(), user.getPassword())) {
-            throw new UserUnregisteredException(UserErrorCode.LOGIN_FAIL);
-        }
+        User user = checkUser(unregisterRequest.getPassword(), authUser);
         user.setStatus(UserStatus.UNREGISTERED);
         userService.save(user);
         MessageResponse messageResponse = new MessageResponse("회원탈퇴가 완료되었습니다.");
@@ -92,14 +90,24 @@ public class UserBusiness {
     }
 
     public MessageResponse updatePassword(UpdatePasswordRequest updatePasswordRequest, AuthUser authUser) {
-        User user = userService.findFirstByIdAndStatusOrderByIdDesc(authUser.getUserId());
-        if (!BCrypt.checkpw(updatePasswordRequest.getCurrPassword(), user.getPassword())) {
-            throw new UserUnregisteredException(UserErrorCode.LOGIN_FAIL);
-        }
+        User user = checkUser(updatePasswordRequest.getCurrPassword(), authUser);
         user.setPassword(BCrypt.hashpw(updatePasswordRequest.getNewPassword(), BCrypt.gensalt()));
         userService.save(user);
         MessageResponse messageResponse = new MessageResponse("비밀번호 변경이 완료되었습니다.");
         return messageResponse;
     }
 
+    public UserInformationResponse getUserInformation(AuthUser authUser) {
+        User user = userService.findFirstByIdAndStatusOrderByIdDesc(authUser.getUserId());
+        UserInformationResponse response = modelMapper.map(user, UserInformationResponse.class);
+        return response;
+    }
+
+    private User checkUser(String password, AuthUser authUser) {
+        User user = userService.findFirstByIdAndStatusOrderByIdDesc(authUser.getUserId());
+        if (!BCrypt.checkpw(password, user.getPassword())) {
+            throw new UserUnregisteredException(UserErrorCode.LOGIN_FAIL);
+        }
+        return user;
+    }
 }

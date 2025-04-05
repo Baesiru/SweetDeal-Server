@@ -1,6 +1,7 @@
 package com.baesiru.gateway.common.exception;
 
 import com.baesiru.gateway.common.errorcode.TokenErrorCode;
+import com.baesiru.gateway.common.exception.token.NotPermittedException;
 import com.baesiru.gateway.common.exception.token.TokenException;
 import com.baesiru.gateway.common.exception.token.TokenExpiredException;
 import com.baesiru.gateway.common.exception.token.TokenSignatureException;
@@ -33,6 +34,13 @@ public class TokenExceptionHandler {
         log.warn("", e);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Api.ERROR(TokenErrorCode.EXPIRED_TOKEN));
+    }
+
+    @ExceptionHandler(value = NotPermittedException.class)
+    public ResponseEntity<Api<Object>> notPermittedException(NotPermittedException e) {
+        log.warn("", e);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Api.ERROR(TokenErrorCode.NOT_PERMITTED));
     }
 
 }

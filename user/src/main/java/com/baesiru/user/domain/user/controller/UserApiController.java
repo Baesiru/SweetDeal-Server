@@ -7,6 +7,7 @@ import com.baesiru.user.common.response.MessageResponse;
 import com.baesiru.user.domain.user.business.UserBusiness;
 import com.baesiru.user.domain.user.controller.model.request.UnregisterRequest;
 import com.baesiru.user.domain.user.controller.model.request.UpdatePasswordRequest;
+import com.baesiru.user.domain.user.controller.model.response.UserInformationResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +29,12 @@ public class UserApiController {
     public Api<MessageResponse> updatePassword(@RequestBody @Valid UpdatePasswordRequest updatePasswordRequest,
                                        @AuthenticatedUser AuthUser authUser) {
         MessageResponse response = userBusiness.updatePassword(updatePasswordRequest, authUser);
+        return Api.OK(response);
+    }
+
+    @PostMapping("/info")
+    public Api<UserInformationResponse> getUserInformation(@AuthenticatedUser AuthUser authUser) {
+        UserInformationResponse response = userBusiness.getUserInformation(authUser);
         return Api.OK(response);
     }
 
