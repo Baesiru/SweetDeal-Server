@@ -1,0 +1,5 @@
+rootProject.name = 'SweetDeal'
+include 'eureka'
+include 'user'
+include 'gateway'
+include 'global'
