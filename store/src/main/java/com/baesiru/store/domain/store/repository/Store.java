@@ -29,6 +29,10 @@ public class Store {
     private StoreCategory category;
     @Enumerated(value = EnumType.STRING)
     private StoreStatus status;
+    @Column(nullable = false)
+    private String latitude;
+    @Column(nullable = false)
+    private String longitude;
     private LocalDateTime requestedAt;
     private LocalDateTime registeredAt;
     private LocalDateTime unregisteredAt;

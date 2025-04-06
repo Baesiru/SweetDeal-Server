@@ -35,4 +35,8 @@ public class RegisterRequest {
     private String businessNumber;
     @ValidEnum(enumClass = StoreCategory.class)
     private StoreCategory category;
+    @NotBlank(message = "필수 입력 사항입니다.")
+    private String latitude;
+    @NotBlank(message = "필수 입력 사항입니다.")
+    private String longitude;
 }
