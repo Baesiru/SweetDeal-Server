@@ -9,6 +9,8 @@ import com.baesiru.store.domain.store.repository.enums.StoreStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -42,4 +44,10 @@ public class StoreService {
         }
         return store.get();
     }
+
+    public List<Store> findStoresWithinRadius(BigDecimal latitude, BigDecimal longitude) {
+        List<Store> stores = storeRepository.findStoresWithinRadius(latitude, longitude, BigDecimal.valueOf(1000.0), StoreStatus.REGISTERED.name());
+        return stores;
+    }
+
 }

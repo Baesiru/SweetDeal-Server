@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -29,10 +30,10 @@ public class Store {
     private StoreCategory category;
     @Enumerated(value = EnumType.STRING)
     private StoreStatus status;
-    @Column(nullable = false)
-    private String latitude;
-    @Column(nullable = false)
-    private String longitude;
+    @Column(nullable = false, precision = 10, scale = 7)
+    private BigDecimal latitude;
+    @Column(nullable = false, precision = 10, scale = 7)
+    private BigDecimal longitude;
     private LocalDateTime requestedAt;
     private LocalDateTime registeredAt;
     private LocalDateTime unregisteredAt;
