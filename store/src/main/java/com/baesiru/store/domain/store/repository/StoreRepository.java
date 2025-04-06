@@ -13,6 +13,7 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     boolean existsByBusinessNumber(String businessNumber);
     Optional<Store> findFirstByUserIdAndStatusNotOrderByUserIdDesc(Long userId, StoreStatus status);
     Optional<Store> findFirstByIdAndStatusOrderByIdDesc(Long id, StoreStatus status);
+    Optional<Store> findFirstByIdAndUserIdAndStatusNotOrderByIdDesc(Long id, Long userId, StoreStatus status);
 
     @Query(value = "SELECT * " +
             "FROM store s " +

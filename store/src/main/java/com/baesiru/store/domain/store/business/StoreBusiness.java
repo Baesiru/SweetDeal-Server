@@ -55,4 +55,12 @@ public class StoreBusiness {
                 .toList();
         return response;
     }
+
+    public MessageResponse unregister(Long id, AuthUser authUser) {
+        Store store = storeService.findFirstByIdAndStatusNotOrderByIdDesc(id, Long.parseLong(authUser.getUserId()));
+        store.setStatus(StoreStatus.UNREGISTERED);
+        storeService.save(store);
+        MessageResponse response = new MessageResponse("가게 삭제가 완료되었습니다.");
+        return response;
+    }
 }

@@ -21,7 +21,7 @@ public class StoreApiController {
     @Autowired
     private StoreBusiness storeBusiness;
 
-    @PostMapping("/store")
+    @PostMapping("/store/register")
     public Api<MessageResponse> register(@RequestBody @Valid RegisterRequest registerRequest,
                            @AuthenticatedUser AuthUser authUser){
         MessageResponse response = storeBusiness.register(registerRequest, authUser);
@@ -43,6 +43,13 @@ public class StoreApiController {
     @PostMapping("/store/nearby")
     public Api<?> getNearbyStore(@RequestBody LocationRequest locationRequest) {
         List<NearbyStoreResponse> response = storeBusiness.getNearbyStore(locationRequest);
+        return Api.OK(response);
+    }
+
+    @PostMapping("/store/unregister/{id}")
+    public Api<MessageResponse> unregister(@PathVariable Long id,
+                                           @AuthenticatedUser AuthUser authUser) {
+        MessageResponse response = storeBusiness.unregister(id, authUser);
         return Api.OK(response);
     }
 }

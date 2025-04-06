@@ -50,4 +50,9 @@ public class StoreService {
         return stores;
     }
 
+    public Store findFirstByIdAndStatusNotOrderByIdDesc(Long id, Long userId) {
+        Optional<Store> store = storeRepository.findFirstByIdAndUserIdAndStatusNotOrderByIdDesc(id, userId, StoreStatus.UNREGISTERED);
+        return store.get();
+    }
+
 }
