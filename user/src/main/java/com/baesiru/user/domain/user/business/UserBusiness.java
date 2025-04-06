@@ -110,4 +110,12 @@ public class UserBusiness {
         }
         return user;
     }
+
+    public MessageResponse chanageRole(RoleRequest roleRequest) {
+        User user = userService.findFirstByIdAndStatusOrderByIdDesc(roleRequest.getUserId());
+        user.setRole(roleRequest.getRole());
+        userService.save(user);
+        MessageResponse response = new MessageResponse("권한이 수정되었습니다.");
+        return response;
+    }
 }

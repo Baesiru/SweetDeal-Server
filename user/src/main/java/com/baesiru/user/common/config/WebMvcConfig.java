@@ -34,5 +34,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**")
                 .excludePathPatterns(WHITE_LIST)
         ;
+
     }
 }
