@@ -1,6 +1,8 @@
 package com.baesiru.store.domain.store.controller.model.request;
 
+import com.baesiru.global.annotation.ValidEnum;
 import com.baesiru.store.domain.store.repository.enums.StoreCategory;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -31,10 +33,6 @@ public class RegisterRequest {
     )
     @NotBlank(message = "필수 입력 사항입니다.")
     private String businessNumber;
-    @Pattern(
-            regexp = "^(CONVENIENCE_STORE|SUPERMARKET|BAKERY|ETC)$",
-            message = "올바른 가게 카테고리를 입력하세요"
-    )
-    @NotNull
+    @ValidEnum(enumClass = StoreCategory.class)
     private StoreCategory category;
 }
