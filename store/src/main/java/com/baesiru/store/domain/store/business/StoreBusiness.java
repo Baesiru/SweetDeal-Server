@@ -4,7 +4,8 @@ import com.baesiru.global.annotation.Business;
 import com.baesiru.global.resolver.AuthUser;
 import com.baesiru.store.common.response.MessageResponse;
 import com.baesiru.store.domain.store.controller.model.request.RegisterRequest;
-import com.baesiru.store.domain.store.controller.model.response.StoreResponse;
+import com.baesiru.store.domain.store.controller.model.response.OwnerStoreResponse;
+import com.baesiru.store.domain.store.controller.model.response.UserStoreResponse;
 import com.baesiru.store.domain.store.repository.Store;
 import com.baesiru.store.domain.store.repository.enums.StoreStatus;
 import com.baesiru.store.domain.store.service.StoreService;
@@ -31,9 +32,15 @@ public class StoreBusiness {
         return response;
     }
 
-    public StoreResponse getOwnStore(AuthUser authUser) {
+    public OwnerStoreResponse getOwnStore(AuthUser authUser) {
         Store store = storeService.findFirstByUserIdOrderByUserIdDesc(Long.parseLong(authUser.getUserId()));
-        StoreResponse storeResponse = modelMapper.map(store, StoreResponse.class);
-        return storeResponse;
+        OwnerStoreResponse ownerStoreResponse = modelMapper.map(store, OwnerStoreResponse.class);
+        return ownerStoreResponse;
+    }
+
+    public UserStoreResponse getUserStore(Long id) {
+        Store store = storeService.findFirstByIdAndStatusOrderByIdDesc(id);
+        UserStoreResponse userStoreResponse = modelMapper.map(store, UserStoreResponse.class);
+        return userStoreResponse;
     }
 }

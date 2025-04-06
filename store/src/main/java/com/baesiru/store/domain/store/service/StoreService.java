@@ -5,6 +5,7 @@ import com.baesiru.store.common.exception.store.BusinessNumberExistsException;
 import com.baesiru.store.common.exception.store.StoreNotFoundException;
 import com.baesiru.store.domain.store.repository.Store;
 import com.baesiru.store.domain.store.repository.StoreRepository;
+import com.baesiru.store.domain.store.repository.enums.StoreStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +27,16 @@ public class StoreService {
         }
     }
 
-    public Store findFirstByUserIdOrderByUserIdDesc(long userId) {
+    public Store findFirstByUserIdOrderByUserIdDesc(Long userId) {
         Optional<Store> store = storeRepository.findFirstByUserIdOrderByUserIdDesc(userId);
+        if (store.isEmpty()) {
+            throw new StoreNotFoundException(StoreErrorCode.STORE_NOT_FOUND);
+        }
+        return store.get();
+    }
+
+    public Store findFirstByIdAndStatusOrderByIdDesc(Long id) {
+        Optional<Store> store = storeRepository.findFirstByIdAndStatusOrderByIdDesc(id, StoreStatus.REGISTERED);
         if (store.isEmpty()) {
             throw new StoreNotFoundException(StoreErrorCode.STORE_NOT_FOUND);
         }

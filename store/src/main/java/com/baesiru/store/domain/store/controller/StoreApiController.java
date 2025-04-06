@@ -6,13 +6,11 @@ import com.baesiru.global.resolver.AuthUser;
 import com.baesiru.store.common.response.MessageResponse;
 import com.baesiru.store.domain.store.business.StoreBusiness;
 import com.baesiru.store.domain.store.controller.model.request.RegisterRequest;
-import com.baesiru.store.domain.store.controller.model.response.StoreResponse;
+import com.baesiru.store.domain.store.controller.model.response.OwnerStoreResponse;
+import com.baesiru.store.domain.store.controller.model.response.UserStoreResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class StoreApiController {
@@ -27,8 +25,14 @@ public class StoreApiController {
     }
 
     @GetMapping("/store/owner")
-    public Api<StoreResponse> getOwnStore(@AuthenticatedUser AuthUser authUser){
-        StoreResponse storeResponse = storeBusiness.getOwnStore(authUser);
-        return Api.OK(storeResponse);
+    public Api<OwnerStoreResponse> getOwnStore(@AuthenticatedUser AuthUser authUser){
+        OwnerStoreResponse ownerStoreResponse = storeBusiness.getOwnStore(authUser);
+        return Api.OK(ownerStoreResponse);
+    }
+
+    @GetMapping("/store/{id}")
+    public Api<UserStoreResponse> getUserStore(@PathVariable Long id) {
+        UserStoreResponse userStoreResponse = storeBusiness.getUserStore(id);
+        return Api.OK(userStoreResponse);
     }
 }
