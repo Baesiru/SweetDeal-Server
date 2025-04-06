@@ -33,7 +33,7 @@ public class StoreBusiness {
     }
 
     public OwnerStoreResponse getOwnStore(AuthUser authUser) {
-        Store store = storeService.findFirstByUserIdOrderByUserIdDesc(Long.parseLong(authUser.getUserId()));
+        Store store = storeService.findFirstByUserIdAndStatusNotOrderByUserIdDesc(Long.parseLong(authUser.getUserId()));
         OwnerStoreResponse ownerStoreResponse = modelMapper.map(store, OwnerStoreResponse.class);
         return ownerStoreResponse;
     }

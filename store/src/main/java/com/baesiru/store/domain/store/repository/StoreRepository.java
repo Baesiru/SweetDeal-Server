@@ -7,6 +7,6 @@ import java.util.Optional;
 
 public interface StoreRepository extends JpaRepository<Store, Long> {
     boolean existsByBusinessNumber(String businessNumber);
-    Optional<Store> findFirstByUserIdOrderByUserIdDesc(Long userId);
+    Optional<Store> findFirstByUserIdAndStatusNotOrderByUserIdDesc(Long userId, StoreStatus status);
     Optional<Store> findFirstByIdAndStatusOrderByIdDesc(Long id, StoreStatus status);
 }
