@@ -4,6 +4,7 @@ import com.baesiru.global.annotation.Business;
 import com.baesiru.global.resolver.AuthUser;
 import com.baesiru.store.common.response.MessageResponse;
 import com.baesiru.store.domain.store.controller.model.request.RegisterRequest;
+import com.baesiru.store.domain.store.controller.model.response.StoreResponse;
 import com.baesiru.store.domain.store.repository.Store;
 import com.baesiru.store.domain.store.repository.enums.StoreStatus;
 import com.baesiru.store.domain.store.service.StoreService;
@@ -28,5 +29,11 @@ public class StoreBusiness {
         storeService.save(store);
         MessageResponse response = new MessageResponse("가게 등록 요청이 완료되었습니다.");
         return response;
+    }
+
+    public StoreResponse getOwnStore(AuthUser authUser) {
+        Store store = storeService.findFirstByUserIdOrderByUserIdDesc(Long.parseLong(authUser.getUserId()));
+        StoreResponse storeResponse = modelMapper.map(store, StoreResponse.class);
+        return storeResponse;
     }
 }
