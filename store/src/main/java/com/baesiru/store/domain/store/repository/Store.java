@@ -4,11 +4,13 @@ import com.baesiru.store.domain.store.repository.enums.StoreCategory;
 import com.baesiru.store.domain.store.repository.enums.StoreStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Store {
