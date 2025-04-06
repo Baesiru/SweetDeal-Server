@@ -1,5 +1,7 @@
 package com.baesiru.store.domain.store.service;
 
+import com.baesiru.store.common.errorcode.StoreErrorCode;
+import com.baesiru.store.common.exception.store.BusinessNumberExistsException;
 import com.baesiru.store.domain.store.repository.Store;
 import com.baesiru.store.domain.store.repository.StoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,7 @@ public class StoreService {
     public void existsByBusinessNumberWithThrow(String businessNumber) {
         boolean existsByBusinessNumber = storeRepository.existsByBusinessNumber(businessNumber);
         if (existsByBusinessNumber) {
-            throw new IllegalArgumentException();
+            throw new BusinessNumberExistsException(StoreErrorCode.EXISTS_BUSINESS_NUMBER);
         }
     }
 }
