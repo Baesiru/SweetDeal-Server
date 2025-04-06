@@ -8,7 +8,7 @@ import lombok.Getter;
 public enum UserRole {
 
     USER("일반사용자"),
-    STORE("점주"),
+    OWNER("점주"),
     ADMIN("관리자")
     ;
 
