@@ -1,10 +1,7 @@
 package com.baesiru.image.domain.image.repository;
 
 import com.baesiru.image.domain.image.repository.enums.ImageKind;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,9 +20,10 @@ public class Image {
     private String originalName;
     private String serverName;
     private String extension;
+    @Enumerated(EnumType.STRING)
     private ImageKind kind;
     private Long productId;
-    private Long boardId;
+    private Long storeId;
     private LocalDateTime registeredAt;
 
 
