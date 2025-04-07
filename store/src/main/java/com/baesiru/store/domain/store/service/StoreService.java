@@ -52,6 +52,9 @@ public class StoreService {
 
     public Store findFirstByIdAndStatusNotOrderByIdDesc(Long id, Long userId) {
         Optional<Store> store = storeRepository.findFirstByIdAndUserIdAndStatusNotOrderByIdDesc(id, userId, StoreStatus.UNREGISTERED);
+        if (store.isEmpty()) {
+            throw new StoreNotFoundException(StoreErrorCode.STORE_NOT_FOUND);
+        }
         return store.get();
     }
 

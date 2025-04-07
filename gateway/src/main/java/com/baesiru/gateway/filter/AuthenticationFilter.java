@@ -30,13 +30,15 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     @Value("${jwt.secret.key}")
     private String secretKey;
 
+    public AuthenticationFilter() {
+    }
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
         if (path.contains(PUBLIC_API_PREFIX)) {
             return chain.filter(exchange);
         }
-
 
         return filterPrivateApi(exchange, chain);
     }

@@ -2,16 +2,14 @@ package com.baesiru.store.domain.store.infra.client;
 
 import com.baesiru.global.api.Api;
 import com.baesiru.store.domain.store.infra.client.model.RoleRequest;
-import com.baesiru.store.domain.store.infra.client.model.UserRole;
 import feign.Headers;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "sweetdeal-users")
+@FeignClient(name = "sweetdeal-users", path = "/internal")
 public interface UserClient {
 
-    @PostMapping("/users/role")
-    @Headers("X-Internal-Call: true")
+    @PostMapping(value = "/users/role", headers = "X-Internal=true")
     Api<?> changeRole(@RequestBody RoleRequest RoleRequest);
 }

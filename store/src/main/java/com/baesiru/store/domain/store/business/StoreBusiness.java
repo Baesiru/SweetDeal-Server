@@ -18,6 +18,8 @@ import com.baesiru.store.domain.store.infra.client.model.UserRole;
 import com.baesiru.store.domain.store.repository.Store;
 import com.baesiru.store.domain.store.repository.enums.StoreStatus;
 import com.baesiru.store.domain.store.service.StoreService;
+import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Business
+@Slf4j
 public class StoreBusiness {
     @Autowired
     private StoreService storeService;
@@ -83,7 +86,7 @@ public class StoreBusiness {
             userClient.changeRole(roleRequest);
             MessageResponse response = new MessageResponse("가게 삭제가 완료되었습니다.");
             return response;
-        } catch (Exception e) {
+        } catch (FeignException e) {
             rollbackStoreStatus(store, originalStatus);
             throw new FailUnregisterStoreException(StoreErrorCode.FAIL_UNREGISTER_STORE);
         }
