@@ -2,9 +2,7 @@ package com.baesiru.store.common.exception;
 
 import com.baesiru.global.api.Api;
 import com.baesiru.store.common.errorcode.StoreErrorCode;
-import com.baesiru.store.common.exception.store.BusinessNumberExistsException;
-import com.baesiru.store.common.exception.store.FailUnregisterStoreException;
-import com.baesiru.store.common.exception.store.StoreNotFoundException;
+import com.baesiru.store.common.exception.store.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,5 +31,19 @@ public class StoreExceptionHandler {
         log.warn("", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Api.ERROR(StoreErrorCode.FAIL_UNREGISTER_STORE));
+    }
+
+    @ExceptionHandler(value = FailRegisterStoreException.class)
+    public ResponseEntity<Api<Object>> failRegisterStoreException(FailRegisterStoreException e) {
+        log.warn("", e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Api.ERROR(StoreErrorCode.FAIL_REGISTER_STORE));
+    }
+
+    @ExceptionHandler(value = FailFetchStoreException.class)
+    public ResponseEntity<Api<Object>> failFetchStoreException(FailFetchStoreException e) {
+        log.warn("", e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Api.ERROR(StoreErrorCode.FAIL_FETCH_STORE));
     }
 }

@@ -11,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,4 +41,5 @@ public class RegisterRequest {
     private String latitude;
     @NotBlank(message = "필수 입력 사항입니다.")
     private String longitude;
+    private List<String> serverNames;
 }

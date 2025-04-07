@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -96,15 +95,15 @@ public class ImageBusiness {
         }
     }
 
-    public List<ImageResponse> getImages(ImagesRequest imagesRequest) {
-        List<ImageResponse> response = new ArrayList<>();
+    public ImagesResponse getImages(ImagesRequest imagesRequest) {
+        ImagesResponse response = new ImagesResponse();
         if (imagesRequest.getKind() == ImageKind.STORE) {
-            response = imageService.findByStoreIdOrderById(imagesRequest.getStoreId()).stream()
-                    .map(image -> new ImageResponse(image.getServerName())).toList();
+            response.setServerNames(imageService.findByStoreIdOrderById(imagesRequest.getStoreId()).stream()
+                    .map(Image::getServerName).toList());
         }
         else if (imagesRequest.getKind() == ImageKind.PRODUCT) {
-            response = imageService.findByProductIdOrderById(imagesRequest.getProductId()).stream()
-                    .map(image -> new ImageResponse(image.getServerName())).toList();
+            response.setServerNames(imageService.findByProductIdOrderById(imagesRequest.getProductId()).stream()
+                    .map(Image::getServerName).toList());
         }
         return response;
     }

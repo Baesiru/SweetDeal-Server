@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -19,6 +20,7 @@ public class OwnerStoreResponse {
     private String businessNumber;
     private StoreCategory category;
     private StoreStatus status;
+    private List<String> serverNames;
     private LocalDateTime requestedAt;
     private LocalDateTime registeredAt;
 }

@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,4 +17,5 @@ public class UserStoreResponse {
     private String phone;
     private String businessNumber;
     private StoreCategory category;
+    private List<String> serverNames;
 }

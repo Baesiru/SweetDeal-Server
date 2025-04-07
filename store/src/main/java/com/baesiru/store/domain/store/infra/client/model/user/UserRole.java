@@ -1,4 +1,4 @@
-package com.baesiru.store.domain.store.infra.client.model;
+package com.baesiru.store.domain.store.infra.client.model.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,20 +1,25 @@
 package com.baesiru.store.domain.store.business;
 
 import com.baesiru.global.annotation.Business;
-import com.baesiru.global.api.Api;
 import com.baesiru.global.resolver.AuthUser;
 import com.baesiru.store.common.errorcode.StoreErrorCode;
+import com.baesiru.store.common.exception.store.FailFetchStoreException;
+import com.baesiru.store.common.exception.store.FailRegisterStoreException;
 import com.baesiru.store.common.exception.store.FailUnregisterStoreException;
-import com.baesiru.store.common.exception.store.StoreNotFoundException;
 import com.baesiru.store.common.response.MessageResponse;
 import com.baesiru.store.domain.store.controller.model.request.LocationRequest;
 import com.baesiru.store.domain.store.controller.model.request.RegisterRequest;
 import com.baesiru.store.domain.store.controller.model.response.NearbyStoreResponse;
 import com.baesiru.store.domain.store.controller.model.response.OwnerStoreResponse;
 import com.baesiru.store.domain.store.controller.model.response.UserStoreResponse;
+import com.baesiru.store.domain.store.infra.client.ImageClient;
 import com.baesiru.store.domain.store.infra.client.UserClient;
-import com.baesiru.store.domain.store.infra.client.model.RoleRequest;
-import com.baesiru.store.domain.store.infra.client.model.UserRole;
+import com.baesiru.store.domain.store.infra.client.model.image.AssignImageRequest;
+import com.baesiru.store.domain.store.infra.client.model.image.ImageKind;
+import com.baesiru.store.domain.store.infra.client.model.image.ImagesRequest;
+import com.baesiru.store.domain.store.infra.client.model.image.ImagesResponse;
+import com.baesiru.store.domain.store.infra.client.model.user.RoleRequest;
+import com.baesiru.store.domain.store.infra.client.model.user.UserRole;
 import com.baesiru.store.domain.store.repository.Store;
 import com.baesiru.store.domain.store.repository.enums.StoreStatus;
 import com.baesiru.store.domain.store.service.StoreService;
@@ -22,11 +27,14 @@ import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.function.EntityResponse;
 
+import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Business
 @Slf4j
@@ -37,6 +45,8 @@ public class StoreBusiness {
     private ModelMapper modelMapper;
     @Autowired
     private UserClient userClient;
+    @Autowired
+    private ImageClient imageClient;
 
     public MessageResponse register(RegisterRequest registerRequest, AuthUser authUser) {
         storeService.existsByBusinessNumberWithThrow(registerRequest.getBusinessNumber());
@@ -44,7 +54,17 @@ public class StoreBusiness {
         store.setUserId(Long.parseLong(authUser.getUserId()));
         store.setRequestedAt(LocalDateTime.now());
         store.setStatus(StoreStatus.PENDING);
-        storeService.save(store);
+        store = storeService.save(store);
+
+        AssignImageRequest assignImageRequest = new AssignImageRequest();
+        assignImageRequest.setKind(ImageKind.STORE);
+        assignImageRequest.setStoreId(store.getId());
+        assignImageRequest.setServerNames(registerRequest.getServerNames());
+        try {
+            imageClient.assignImages(assignImageRequest);
+        } catch (FeignException e) {
+            throw new FailRegisterStoreException(StoreErrorCode.FAIL_REGISTER_STORE);
+        }
         MessageResponse response = new MessageResponse("가게 등록 요청이 완료되었습니다.");
         return response;
     }
@@ -52,13 +72,33 @@ public class StoreBusiness {
     public OwnerStoreResponse getOwnStore(AuthUser authUser) {
         Store store = storeService.findFirstByUserIdAndStatusNotOrderByUserIdDesc(Long.parseLong(authUser.getUserId()));
         OwnerStoreResponse ownerStoreResponse = modelMapper.map(store, OwnerStoreResponse.class);
+
+        ImagesRequest imagesRequest = new ImagesRequest();
+        imagesRequest.setStoreId(store.getId());
+        imagesRequest.setKind(ImageKind.STORE);
+        try {
+            ResponseEntity<ImagesResponse> response = imageClient.getImages(imagesRequest);
+            ownerStoreResponse.setServerNames(response.getBody().getServerNames());
+        } catch (FeignException e) {
+            throw new FailFetchStoreException(StoreErrorCode.FAIL_FETCH_STORE);
+        }
         return ownerStoreResponse;
     }
 
     public UserStoreResponse getUserStore(Long id) {
         Store store = storeService.findFirstByIdAndStatusOrderByIdDesc(id);
         UserStoreResponse userStoreResponse = modelMapper.map(store, UserStoreResponse.class);
-        return userStoreResponse;
+
+        ImagesRequest imagesRequest = new ImagesRequest();
+        imagesRequest.setStoreId(store.getId());
+        imagesRequest.setKind(ImageKind.STORE);
+        try {
+            ResponseEntity<ImagesResponse> response = imageClient.getImages(imagesRequest);
+            userStoreResponse.setServerNames(response.getBody().getServerNames());
+            return userStoreResponse;
+        } catch (FeignException e) {
+            throw new FailFetchStoreException(StoreErrorCode.FAIL_FETCH_STORE);
+        }
     }
 
     public List<NearbyStoreResponse> getNearbyStore(LocationRequest locationRequest) {

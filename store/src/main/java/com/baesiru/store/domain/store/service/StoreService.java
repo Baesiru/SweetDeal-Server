@@ -18,8 +18,8 @@ public class StoreService {
     @Autowired
     private StoreRepository storeRepository;
 
-    public void save(Store store) {
-        storeRepository.save(store);
+    public Store save(Store store) {
+        return storeRepository.save(store);
     }
 
     public void existsByBusinessNumberWithThrow(String businessNumber) {

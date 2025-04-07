@@ -5,6 +5,7 @@ import com.baesiru.image.common.response.MessageResponse;
 import com.baesiru.image.domain.image.business.ImageBusiness;
 import com.baesiru.image.domain.image.controller.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,15 +16,15 @@ public class ImageInternalController {
     @Autowired
     private ImageBusiness imageBusiness;
     @PostMapping("/assignimages")
-    public Api<MessageResponse> assignImage(@RequestBody AssignImageRequest assignImageRequest) {
+    public ResponseEntity<MessageResponse> assignImage(@RequestBody AssignImageRequest assignImageRequest) {
         MessageResponse response = imageBusiness.assignImage(assignImageRequest);
-        return Api.OK(response);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/images")
-    public Api<?> getImages(@RequestBody ImagesRequest imagesRequest) {
-        List<ImageResponse> response = imageBusiness.getImages(imagesRequest);
-        return Api.OK(response);
+    public ResponseEntity<?> getImages(@RequestBody ImagesRequest imagesRequest) {
+        ImagesResponse response = imageBusiness.getImages(imagesRequest);
+        return ResponseEntity.ok(response);
     }
 
 }
