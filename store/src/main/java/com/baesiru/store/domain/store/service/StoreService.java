@@ -6,6 +6,8 @@ import com.baesiru.store.common.exception.store.StoreNotFoundException;
 import com.baesiru.store.domain.store.repository.Store;
 import com.baesiru.store.domain.store.repository.StoreRepository;
 import com.baesiru.store.domain.store.repository.enums.StoreStatus;
+import com.baesiru.store.domain.store.service.model.image.AssignImageRequest;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,8 @@ import java.util.Optional;
 public class StoreService {
     @Autowired
     private StoreRepository storeRepository;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     public Store save(Store store) {
         return storeRepository.save(store);
@@ -57,5 +61,10 @@ public class StoreService {
         }
         return store.get();
     }
+
+    public void publishAssignToImage(AssignImageRequest assignImageRequest) {
+        rabbitTemplate.convertAndSend("image.topic.exchange", "image.store.assign", assignImageRequest);
+    }
+
 
 }

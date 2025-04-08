@@ -14,11 +14,6 @@ import org.springframework.web.bind.annotation.*;
 public class ImageInternalController {
     @Autowired
     private ImageBusiness imageBusiness;
-    @PostMapping("/assignimages")
-    public ResponseEntity<MessageResponse> assignImages(@RequestBody AssignImageRequest assignImageRequest) {
-        MessageResponse response = imageBusiness.assignImages(assignImageRequest);
-        return ResponseEntity.ok(response);
-    }
 
     @PostMapping("/images")
     public ResponseEntity<?> getImages(@RequestBody ImagesRequest imagesRequest) {
@@ -26,10 +21,19 @@ public class ImageInternalController {
         return ResponseEntity.ok(response);
     }
 
+    /*
+    RabbitMQ 도입으로 인한 삭제 예정
+    @PostMapping("/assignimages")
+    public ResponseEntity<MessageResponse> assignImages(@RequestBody AssignImageRequest assignImageRequest) {
+        MessageResponse response = imageBusiness.assignImages(assignImageRequest);
+        return ResponseEntity.ok(response);
+    }
+
+
     @PostMapping("/updateimages")
     public ResponseEntity<MessageResponse> updateImages(@RequestBody AssignImageRequest assignImageRequest) {
         MessageResponse response = imageBusiness.updateImage(assignImageRequest);
         return ResponseEntity.ok(response);
-    }
+    }*/
 
 }

@@ -27,6 +27,8 @@ import com.baesiru.store.domain.store.service.StoreService;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,12 +61,8 @@ public class StoreBusiness {
                 .storeId(store.getId())
                 .serverNames(registerRequest.getServerNames())
                 .build();
+        storeService.publishAssignToImage(assignImageRequest);
 
-        try {
-            imageFeign.assignImages(assignImageRequest);
-        } catch (FeignException e) {
-            throw new FailRegisterStoreException(StoreErrorCode.FAIL_REGISTER_STORE);
-        }
         MessageResponse response = new MessageResponse("가게 등록 요청이 완료되었습니다.");
         return response;
     }

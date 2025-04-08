@@ -6,7 +6,6 @@ import com.baesiru.image.common.errorcode.ImageErrorCode;
 import com.baesiru.image.common.exception.image.ImageDirectoryErrorException;
 import com.baesiru.image.common.exception.image.ImageNotFoundException;
 import com.baesiru.image.common.exception.image.ImageUploadException;
-import com.baesiru.image.common.response.MessageResponse;
 import com.baesiru.image.domain.image.controller.model.request.AssignImageRequest;
 import com.baesiru.image.domain.image.controller.model.request.ImageRequest;
 import com.baesiru.image.domain.image.controller.model.request.ImagesRequest;
@@ -16,6 +15,7 @@ import com.baesiru.image.domain.image.repository.Image;
 import com.baesiru.image.domain.image.repository.enums.ImageKind;
 import com.baesiru.image.domain.image.service.ImageService;
 import org.modelmapper.ModelMapper;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -80,6 +80,7 @@ public class ImageBusiness {
                 .build();
     }
 
+    /* RabbitMq 적용으로 인한 삭제 예정
     @Transactional
     public MessageResponse assignImages(AssignImageRequest assignImageRequest) {
         ImageKind imageKind = assignImageRequest.getKind();
@@ -92,7 +93,7 @@ public class ImageBusiness {
         }
         MessageResponse response = new MessageResponse("이미지와 연동이 완료되었습니다.");
         return response;
-    }
+    }*/
 
     public void assignStoreImages(Long storeId, List<String> serverNames) {
         for (String serverName : serverNames) {
@@ -123,6 +124,8 @@ public class ImageBusiness {
         return response;
     }
 
+    /*
+    RabbitMQ 도입으로 인한 삭제 예정
     @Transactional
     public MessageResponse updateImage(AssignImageRequest assignImageRequest) {
         ImageKind imageKind = assignImageRequest.getKind();
@@ -135,7 +138,7 @@ public class ImageBusiness {
         }
         MessageResponse response = new MessageResponse("이미지와 연동이 완료되었습니다.");
         return response;
-    }
+    } */
 
     private void extractUpdatedStoreImages(List<String> newImages, Long storeId) {
         List<Image> existsImages = imageService.findByStoreIdOrderById(storeId);
@@ -178,6 +181,32 @@ public class ImageBusiness {
             Image image = imageService.findByServerName(serverName);
             image.setProductId(productId);
             imageService.save(image);
+        }
+    }
+
+    @Transactional
+    @RabbitListener(queues = "image.store.assign.queue")
+    public void handlerAssignMessage(AssignImageRequest message) {
+        ImageKind imageKind = message.getKind();
+        List<String> serverNames = message.getServerNames();
+        if (imageKind == ImageKind.STORE) {
+            assignStoreImages(message.getStoreId(), serverNames);
+        }
+        else if (imageKind == ImageKind.PRODUCT) {
+            assignProductImages(message.getProductId(), serverNames);
+        }
+    }
+
+    @Transactional
+    @RabbitListener(queues = "image.store.update.queue")
+    public void handlerUpdateMessage(AssignImageRequest message) {
+        ImageKind imageKind = message.getKind();
+        List<String> serverNames = message.getServerNames();
+        if (imageKind == ImageKind.STORE) {
+            extractUpdatedStoreImages(serverNames, message.getStoreId());
+        }
+        else if (imageKind == ImageKind.PRODUCT) {
+            extractUpdatedProductImages(serverNames, message.getProductId());
         }
     }
 }
