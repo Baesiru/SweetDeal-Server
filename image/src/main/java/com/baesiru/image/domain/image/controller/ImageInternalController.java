@@ -15,14 +15,20 @@ public class ImageInternalController {
     @Autowired
     private ImageBusiness imageBusiness;
     @PostMapping("/assignimages")
-    public ResponseEntity<MessageResponse> assignImage(@RequestBody AssignImageRequest assignImageRequest) {
-        MessageResponse response = imageBusiness.assignImage(assignImageRequest);
+    public ResponseEntity<MessageResponse> assignImages(@RequestBody AssignImageRequest assignImageRequest) {
+        MessageResponse response = imageBusiness.assignImages(assignImageRequest);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/images")
     public ResponseEntity<?> getImages(@RequestBody ImagesRequest imagesRequest) {
         ImagesResponse response = imageBusiness.getImages(imagesRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/updateimages")
+    public ResponseEntity<MessageResponse> updateImages(@RequestBody AssignImageRequest assignImageRequest) {
+        MessageResponse response = imageBusiness.updateImage(assignImageRequest);
         return ResponseEntity.ok(response);
     }
 

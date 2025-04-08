@@ -81,7 +81,7 @@ public class ImageBusiness {
     }
 
     @Transactional
-    public MessageResponse assignImage(AssignImageRequest assignImageRequest) {
+    public MessageResponse assignImages(AssignImageRequest assignImageRequest) {
         ImageKind imageKind = assignImageRequest.getKind();
         List<String> serverNames = assignImageRequest.getServerNames();
         if (imageKind == ImageKind.STORE) {
@@ -123,5 +123,61 @@ public class ImageBusiness {
         return response;
     }
 
+    @Transactional
+    public MessageResponse updateImage(AssignImageRequest assignImageRequest) {
+        ImageKind imageKind = assignImageRequest.getKind();
+        List<String> serverNames = assignImageRequest.getServerNames();
+        if (imageKind == ImageKind.STORE) {
+            extractUpdatedStoreImages(serverNames, assignImageRequest.getStoreId());
+        }
+        else if (imageKind == ImageKind.PRODUCT) {
+            extractUpdatedProductImages(serverNames, assignImageRequest.getProductId());
+        }
+        MessageResponse response = new MessageResponse("이미지와 연동이 완료되었습니다.");
+        return response;
+    }
 
+    private void extractUpdatedStoreImages(List<String> newImages, Long storeId) {
+        List<Image> existsImages = imageService.findByStoreIdOrderById(storeId);
+        for (Image image : existsImages) {
+            if (!newImages.contains(image.getServerName())) {
+                image.setStoreId(null);
+                imageService.save(image);
+            }
+            else {
+                newImages.remove(image.getServerName());
+            }
+        }
+        updateStoreIdForImages(storeId, newImages);
+    }
+
+    private void updateStoreIdForImages(Long storeId, List<String> newImages) {
+        for (String serverName : newImages) {
+            Image image = imageService.findByServerName(serverName);
+            image.setStoreId(storeId);
+            imageService.save(image);
+        }
+    }
+
+    private void extractUpdatedProductImages(List<String> newImages, Long productId) {
+        List<Image> existsImages = imageService.findByProductIdOrderById(productId);
+        for (Image image : existsImages) {
+            if (!newImages.contains(image.getServerName())) {
+                image.setStoreId(null);
+                imageService.save(image);
+            }
+            else {
+                newImages.remove(image.getServerName());
+            }
+        }
+        updateProductIdForImages(productId, newImages);
+    }
+
+    private void updateProductIdForImages(Long productId, List<String> newImages) {
+        for (String serverName : newImages) {
+            Image image = imageService.findByServerName(serverName);
+            image.setProductId(productId);
+            imageService.save(image);
+        }
+    }
 }

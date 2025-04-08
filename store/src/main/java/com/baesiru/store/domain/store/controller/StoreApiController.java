@@ -7,6 +7,7 @@ import com.baesiru.store.common.response.MessageResponse;
 import com.baesiru.store.domain.store.business.StoreBusiness;
 import com.baesiru.store.domain.store.controller.model.request.LocationRequest;
 import com.baesiru.store.domain.store.controller.model.request.RegisterRequest;
+import com.baesiru.store.domain.store.controller.model.request.UpdateRequest;
 import com.baesiru.store.domain.store.controller.model.response.NearbyStoreResponse;
 import com.baesiru.store.domain.store.controller.model.response.OwnerStoreResponse;
 import com.baesiru.store.domain.store.controller.model.response.UserStoreResponse;
@@ -25,6 +26,13 @@ public class StoreApiController {
     public Api<MessageResponse> register(@RequestBody @Valid RegisterRequest registerRequest,
                            @AuthenticatedUser AuthUser authUser){
         MessageResponse response = storeBusiness.register(registerRequest, authUser);
+        return Api.OK(response);
+    }
+
+    @PostMapping("/store/update")
+    public Api<MessageResponse> update(@RequestBody @Valid UpdateRequest updateRequest,
+                                       @AuthenticatedUser AuthUser authUser){
+        MessageResponse response = storeBusiness.update(updateRequest, authUser);
         return Api.OK(response);
     }
 

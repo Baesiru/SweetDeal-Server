@@ -9,6 +9,7 @@ import com.baesiru.store.common.exception.store.FailUnregisterStoreException;
 import com.baesiru.store.common.response.MessageResponse;
 import com.baesiru.store.domain.store.controller.model.request.LocationRequest;
 import com.baesiru.store.domain.store.controller.model.request.RegisterRequest;
+import com.baesiru.store.domain.store.controller.model.request.UpdateRequest;
 import com.baesiru.store.domain.store.controller.model.response.NearbyStoreResponse;
 import com.baesiru.store.domain.store.controller.model.response.OwnerStoreResponse;
 import com.baesiru.store.domain.store.controller.model.response.UserStoreResponse;
@@ -53,10 +54,11 @@ public class StoreBusiness {
         store.setStatus(StoreStatus.PENDING);
         store = storeService.save(store);
 
-        AssignImageRequest assignImageRequest = new AssignImageRequest();
-        assignImageRequest.setKind(ImageKind.STORE);
-        assignImageRequest.setStoreId(store.getId());
-        assignImageRequest.setServerNames(registerRequest.getServerNames());
+        AssignImageRequest assignImageRequest = AssignImageRequest.builder()
+                .kind(ImageKind.STORE)
+                .storeId(store.getId())
+                .serverNames(registerRequest.getServerNames())
+                .build();
 
         try {
             imageFeign.assignImages(assignImageRequest);
@@ -64,6 +66,23 @@ public class StoreBusiness {
             throw new FailRegisterStoreException(StoreErrorCode.FAIL_REGISTER_STORE);
         }
         MessageResponse response = new MessageResponse("가게 등록 요청이 완료되었습니다.");
+        return response;
+    }
+
+    public MessageResponse update(UpdateRequest updateRequest, AuthUser authUser) {
+        Store store = storeService.findFirstByUserIdAndStatusNotOrderByUserIdDesc(Long.parseLong(authUser.getUserId()));
+        modelMapper.map(updateRequest, store);
+        AssignImageRequest assignImageRequest = AssignImageRequest.builder()
+                .kind(ImageKind.STORE)
+                .storeId(store.getId())
+                .serverNames(updateRequest.getServerNames())
+                .build();
+        try {
+            imageFeign.assignImages(assignImageRequest);
+        } catch (FeignException e) {
+            throw new FailRegisterStoreException(StoreErrorCode.FAIL_REGISTER_STORE);
+        }
+        MessageResponse response = new MessageResponse("가게 수정 요청이 완료되었습니다.");
         return response;
     }
 
@@ -135,4 +154,6 @@ public class StoreBusiness {
         store.setUnregisteredAt(null);
         storeService.save(store);
     }
+
+
 }
