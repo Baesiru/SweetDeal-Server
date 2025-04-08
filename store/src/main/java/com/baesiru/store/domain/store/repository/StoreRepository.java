@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface StoreRepository extends JpaRepository<Store, Long> {
     boolean existsByBusinessNumber(String businessNumber);
     Optional<Store> findFirstByUserIdAndStatusNotOrderByUserIdDesc(Long userId, StoreStatus status);
+    Optional<Store> findFirstByUserIdAndStatusOrderByUserIdDesc(Long userId, StoreStatus storeStatus);
     Optional<Store> findFirstByIdAndStatusOrderByIdDesc(Long id, StoreStatus status);
     Optional<Store> findFirstByIdAndUserIdAndStatusNotOrderByIdDesc(Long id, Long userId, StoreStatus status);
 
@@ -26,4 +27,5 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
             @Param("radius") BigDecimal radiusInMeters,
             @Param("status") String status
     );
+
 }

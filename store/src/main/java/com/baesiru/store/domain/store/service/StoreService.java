@@ -67,4 +67,11 @@ public class StoreService {
     }
 
 
+    public Store findFirstByUserIdAndStatusOrderByUserIdDesc(Long userId) {
+        Optional<Store> store = storeRepository.findFirstByUserIdAndStatusOrderByUserIdDesc(userId, StoreStatus.REGISTERED);
+        if (store.isEmpty()) {
+            throw new StoreNotFoundException(StoreErrorCode.STORE_NOT_FOUND);
+        }
+        return store.get();
+    }
 }

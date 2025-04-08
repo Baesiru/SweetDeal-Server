@@ -12,6 +12,7 @@ import com.baesiru.store.domain.store.controller.model.request.RegisterRequest;
 import com.baesiru.store.domain.store.controller.model.request.UpdateRequest;
 import com.baesiru.store.domain.store.controller.model.response.NearbyStoreResponse;
 import com.baesiru.store.domain.store.controller.model.response.OwnerStoreResponse;
+import com.baesiru.store.domain.store.controller.model.response.StoreSimpleResponse;
 import com.baesiru.store.domain.store.controller.model.response.UserStoreResponse;
 import com.baesiru.store.domain.store.service.ImageFeign;
 import com.baesiru.store.domain.store.service.UserFeign;
@@ -154,4 +155,9 @@ public class StoreBusiness {
     }
 
 
+    public StoreSimpleResponse getSimpleStore(String userId) {
+        Store store = storeService.findFirstByUserIdAndStatusOrderByUserIdDesc(Long.parseLong(userId));
+        StoreSimpleResponse storeSimpleResponse = modelMapper.map(store, StoreSimpleResponse.class);
+        return storeSimpleResponse;
+    }
 }
