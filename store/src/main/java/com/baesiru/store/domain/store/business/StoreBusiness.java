@@ -12,14 +12,14 @@ import com.baesiru.store.domain.store.controller.model.request.RegisterRequest;
 import com.baesiru.store.domain.store.controller.model.response.NearbyStoreResponse;
 import com.baesiru.store.domain.store.controller.model.response.OwnerStoreResponse;
 import com.baesiru.store.domain.store.controller.model.response.UserStoreResponse;
-import com.baesiru.store.domain.store.infra.client.ImageClient;
-import com.baesiru.store.domain.store.infra.client.UserClient;
-import com.baesiru.store.domain.store.infra.client.model.image.AssignImageRequest;
-import com.baesiru.store.domain.store.infra.client.model.image.ImageKind;
-import com.baesiru.store.domain.store.infra.client.model.image.ImagesRequest;
-import com.baesiru.store.domain.store.infra.client.model.image.ImagesResponse;
-import com.baesiru.store.domain.store.infra.client.model.user.RoleRequest;
-import com.baesiru.store.domain.store.infra.client.model.user.UserRole;
+import com.baesiru.store.domain.store.service.ImageFeign;
+import com.baesiru.store.domain.store.service.UserFeign;
+import com.baesiru.store.domain.store.service.model.image.AssignImageRequest;
+import com.baesiru.store.domain.store.service.model.image.ImageKind;
+import com.baesiru.store.domain.store.service.model.image.ImagesRequest;
+import com.baesiru.store.domain.store.service.model.image.ImagesResponse;
+import com.baesiru.store.domain.store.service.model.user.RoleRequest;
+import com.baesiru.store.domain.store.service.model.user.UserRole;
 import com.baesiru.store.domain.store.repository.Store;
 import com.baesiru.store.domain.store.repository.enums.StoreStatus;
 import com.baesiru.store.domain.store.service.StoreService;
@@ -29,12 +29,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.function.EntityResponse;
 
-import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 @Business
 @Slf4j
@@ -44,9 +41,9 @@ public class StoreBusiness {
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
-    private UserClient userClient;
+    private UserFeign userFeign;
     @Autowired
-    private ImageClient imageClient;
+    private ImageFeign imageFeign;
 
     public MessageResponse register(RegisterRequest registerRequest, AuthUser authUser) {
         storeService.existsByBusinessNumberWithThrow(registerRequest.getBusinessNumber());
@@ -60,8 +57,9 @@ public class StoreBusiness {
         assignImageRequest.setKind(ImageKind.STORE);
         assignImageRequest.setStoreId(store.getId());
         assignImageRequest.setServerNames(registerRequest.getServerNames());
+
         try {
-            imageClient.assignImages(assignImageRequest);
+            imageFeign.assignImages(assignImageRequest);
         } catch (FeignException e) {
             throw new FailRegisterStoreException(StoreErrorCode.FAIL_REGISTER_STORE);
         }
@@ -77,7 +75,7 @@ public class StoreBusiness {
         imagesRequest.setStoreId(store.getId());
         imagesRequest.setKind(ImageKind.STORE);
         try {
-            ResponseEntity<ImagesResponse> response = imageClient.getImages(imagesRequest);
+            ResponseEntity<ImagesResponse> response = imageFeign.getImages(imagesRequest);
             ownerStoreResponse.setServerNames(response.getBody().getServerNames());
         } catch (FeignException e) {
             throw new FailFetchStoreException(StoreErrorCode.FAIL_FETCH_STORE);
@@ -93,7 +91,7 @@ public class StoreBusiness {
         imagesRequest.setStoreId(store.getId());
         imagesRequest.setKind(ImageKind.STORE);
         try {
-            ResponseEntity<ImagesResponse> response = imageClient.getImages(imagesRequest);
+            ResponseEntity<ImagesResponse> response = imageFeign.getImages(imagesRequest);
             userStoreResponse.setServerNames(response.getBody().getServerNames());
             return userStoreResponse;
         } catch (FeignException e) {
@@ -123,7 +121,7 @@ public class StoreBusiness {
         roleRequest.setRole(UserRole.USER);
 
         try {
-            userClient.changeRole(roleRequest);
+            userFeign.changeRole(roleRequest);
             MessageResponse response = new MessageResponse("가게 삭제가 완료되었습니다.");
             return response;
         } catch (FeignException e) {
