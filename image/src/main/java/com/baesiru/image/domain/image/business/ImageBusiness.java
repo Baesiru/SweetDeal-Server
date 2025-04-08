@@ -2,6 +2,10 @@ package com.baesiru.image.domain.image.business;
 
 import com.baesiru.global.annotation.Business;
 import com.baesiru.image.common.config.FileStorageProperties;
+import com.baesiru.image.common.errorcode.ImageErrorCode;
+import com.baesiru.image.common.exception.image.ImageDirectoryErrorException;
+import com.baesiru.image.common.exception.image.ImageNotFoundException;
+import com.baesiru.image.common.exception.image.ImageUploadException;
 import com.baesiru.image.common.response.MessageResponse;
 import com.baesiru.image.domain.image.controller.model.request.AssignImageRequest;
 import com.baesiru.image.domain.image.controller.model.request.ImageRequest;
@@ -11,6 +15,7 @@ import com.baesiru.image.domain.image.controller.model.response.ImagesResponse;
 import com.baesiru.image.domain.image.repository.Image;
 import com.baesiru.image.domain.image.repository.enums.ImageKind;
 import com.baesiru.image.domain.image.service.ImageService;
+import org.modelmapper.ModelMapper;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,46 +31,53 @@ import java.util.UUID;
 public class ImageBusiness {
     private final Path uploadDir;
     private final ImageService imageService;
+    private final ModelMapper modelMapper;
 
-    public ImageBusiness(FileStorageProperties fileStorageProperties, ImageService imageService) {
+    public ImageBusiness(FileStorageProperties fileStorageProperties, ImageService imageService, ModelMapper modelMapper) {
         this.uploadDir = fileStorageProperties.getUploadDir();
         this.imageService = imageService;
+        this.modelMapper = modelMapper;
 
         try {
             Files.createDirectories(this.uploadDir);
         } catch (IOException e) {
-            throw new RuntimeException("지정된 경로에 폴더를 생성할 수가 없습니다.", e);
+            throw new ImageDirectoryErrorException(ImageErrorCode.IMAGE_DIRECTORY_ERROR);
         }
     }
+
     public ImageResponse upload(ImageRequest imageRequest) {
-        MultipartFile file = imageRequest.getFile();
+        Image image = modelMapper.map(imageRequest, Image.class);
+        image = uploadImage(imageRequest.getFile(), image);
+        imageService.save(image);
+        ImageResponse imageResponse = modelMapper.map(image, ImageResponse.class);
+        return imageResponse;
+    }
+
+    private Image uploadImage(MultipartFile file, Image image) {
         if (file.isEmpty()) {
-            throw new RuntimeException();
+            throw new ImageNotFoundException(ImageErrorCode.IMAGE_NOT_FOUND);
         }
         String originalName = file.getOriginalFilename();
 
         String extension = originalName.substring(originalName.lastIndexOf(".") + 1);
         String serverName = UUID.randomUUID().toString().replaceAll("-", "") + "." + extension;
         String fileFullPath = uploadDir.resolve(serverName).toAbsolutePath().toString();
-        Image image = Image.builder()
-                .imageUrl(fileFullPath)
-                .serverName(serverName)
-                .extension(extension)
-                .originalName(originalName)
-                .kind(imageRequest.getKind())
-                .registeredAt(LocalDateTime.now())
-                .build();
-
-        imageService.save(image);
 
         try {
             File uploadFile = new File(fileFullPath);
             file.transferTo(uploadFile);
-            ImageResponse imageResponse = new ImageResponse(serverName);
-            return imageResponse;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ImageUploadException(ImageErrorCode.IMAGE_UPLOAD_ERROR);
         }
+
+        return Image.builder()
+                .imageUrl(fileFullPath)
+                .serverName(serverName)
+                .extension(extension)
+                .originalName(originalName)
+                .kind(image.getKind())
+                .registeredAt(LocalDateTime.now())
+                .build();
     }
 
     @Transactional
@@ -110,4 +122,6 @@ public class ImageBusiness {
         }
         return response;
     }
+
+
 }
