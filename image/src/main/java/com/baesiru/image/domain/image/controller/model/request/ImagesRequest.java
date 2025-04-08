@@ -1,4 +1,4 @@
-package com.baesiru.image.domain.image.controller.model;
+package com.baesiru.image.domain.image.controller.model.request;
 
 import com.baesiru.image.domain.image.repository.enums.ImageKind;
 import lombok.AllArgsConstructor;

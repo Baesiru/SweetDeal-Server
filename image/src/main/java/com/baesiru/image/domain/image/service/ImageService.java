@@ -1,6 +1,5 @@
 package com.baesiru.image.domain.image.service;
 
-import com.baesiru.image.domain.image.controller.model.ImageResponse;
 import com.baesiru.image.domain.image.repository.Image;
 import com.baesiru.image.domain.image.repository.ImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;

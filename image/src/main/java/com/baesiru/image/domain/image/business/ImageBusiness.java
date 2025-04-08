@@ -3,7 +3,11 @@ package com.baesiru.image.domain.image.business;
 import com.baesiru.global.annotation.Business;
 import com.baesiru.image.common.config.FileStorageProperties;
 import com.baesiru.image.common.response.MessageResponse;
-import com.baesiru.image.domain.image.controller.model.*;
+import com.baesiru.image.domain.image.controller.model.request.AssignImageRequest;
+import com.baesiru.image.domain.image.controller.model.request.ImageRequest;
+import com.baesiru.image.domain.image.controller.model.request.ImagesRequest;
+import com.baesiru.image.domain.image.controller.model.response.ImageResponse;
+import com.baesiru.image.domain.image.controller.model.response.ImagesResponse;
 import com.baesiru.image.domain.image.repository.Image;
 import com.baesiru.image.domain.image.repository.enums.ImageKind;
 import com.baesiru.image.domain.image.service.ImageService;
@@ -40,17 +44,17 @@ public class ImageBusiness {
         }
         String originalName = file.getOriginalFilename();
 
-        String extension = originalName.substring(originalName.lastIndexOf(".")+1);
+        String extension = originalName.substring(originalName.lastIndexOf(".") + 1);
         String serverName = UUID.randomUUID().toString().replaceAll("-", "") + "." + extension;
         String fileFullPath = uploadDir.resolve(serverName).toAbsolutePath().toString();
-        Image image = new Image();
-
-        image.setImageUrl(fileFullPath);
-        image.setServerName(serverName);
-        image.setExtension(extension);
-        image.setOriginalName(originalName);
-        image.setKind(imageRequest.getKind());
-        image.setRegisteredAt(LocalDateTime.now());
+        Image image = Image.builder()
+                .imageUrl(fileFullPath)
+                .serverName(serverName)
+                .extension(extension)
+                .originalName(originalName)
+                .kind(imageRequest.getKind())
+                .registeredAt(LocalDateTime.now())
+                .build();
 
         imageService.save(image);
 
@@ -77,7 +81,6 @@ public class ImageBusiness {
         MessageResponse response = new MessageResponse("이미지와 연동이 완료되었습니다.");
         return response;
     }
-
 
     public void assignStoreImages(Long storeId, List<String> serverNames) {
         for (String serverName : serverNames) {

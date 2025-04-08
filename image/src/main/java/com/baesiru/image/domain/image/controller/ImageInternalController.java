@@ -1,14 +1,13 @@
 package com.baesiru.image.domain.image.controller;
 
-import com.baesiru.global.api.Api;
 import com.baesiru.image.common.response.MessageResponse;
 import com.baesiru.image.domain.image.business.ImageBusiness;
-import com.baesiru.image.domain.image.controller.model.*;
+import com.baesiru.image.domain.image.controller.model.request.AssignImageRequest;
+import com.baesiru.image.domain.image.controller.model.request.ImagesRequest;
+import com.baesiru.image.domain.image.controller.model.response.ImagesResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/internal")

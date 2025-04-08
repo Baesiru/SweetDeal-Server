@@ -1,4 +1,4 @@
-package com.baesiru.image.domain.image.controller.model;
+package com.baesiru.image.domain.image.controller.model.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
