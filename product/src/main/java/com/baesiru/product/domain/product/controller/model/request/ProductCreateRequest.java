@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -18,4 +19,5 @@ public class ProductCreateRequest {
     private String description;
     private LocalDateTime expiredAt;
     private LocalDateTime saleClosedAt;
+    private List<String> serverNames;
 }

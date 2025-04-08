@@ -11,6 +11,8 @@ import com.baesiru.product.domain.product.repository.Product;
 import com.baesiru.product.domain.product.repository.enums.ProductStatus;
 import com.baesiru.product.domain.product.service.ProductService;
 import com.baesiru.product.domain.product.service.StoreFeign;
+import com.baesiru.product.domain.product.service.model.image.AssignImageRequest;
+import com.baesiru.product.domain.product.service.model.image.ImageKind;
 import com.baesiru.product.domain.product.service.model.store.StoreSimpleResponse;
 import feign.FeignException;
 import org.modelmapper.ModelMapper;
@@ -47,7 +49,14 @@ public class ProductBusiness {
         if (product.getExpiredAt().isAfter(productCreateRequest.getSaleClosedAt())) {
             product.setExpiredAt(productCreateRequest.getSaleClosedAt());
         }
-        productService.save(product);
+        product = productService.save(product);
+        AssignImageRequest assignImageRequest = AssignImageRequest.builder()
+                .kind(ImageKind.PRODUCT)
+                .productId(product.getId())
+                .serverNames(productCreateRequest.getServerNames())
+                .build();
+        productService.publishAssignToImage(assignImageRequest);
+
         MessageResponse messageResponse = new MessageResponse("상품이 정상적으로 등록되었습니다.");
         return messageResponse;
     }
