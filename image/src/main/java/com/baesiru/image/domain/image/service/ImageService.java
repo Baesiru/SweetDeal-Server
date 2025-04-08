@@ -1,5 +1,7 @@
 package com.baesiru.image.domain.image.service;
 
+import com.baesiru.image.common.errorcode.ImageErrorCode;
+import com.baesiru.image.common.exception.image.ImageNotFoundException;
 import com.baesiru.image.domain.image.repository.Image;
 import com.baesiru.image.domain.image.repository.ImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +22,7 @@ public class ImageService {
     public Image findByServerName(String serverName) {
         Optional<Image> image = imageRepository.findByServerName(serverName);
         if (image.isEmpty()) {
-            throw new IllegalArgumentException();
+            throw new ImageNotFoundException(ImageErrorCode.IMAGE_NOT_FOUND);
         }
         return image.get();
     }
