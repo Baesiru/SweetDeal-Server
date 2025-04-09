@@ -1,5 +1,6 @@
 package com.baesiru.product.domain.product.service;
 
+import com.baesiru.product.domain.product.service.model.store.StoreProductResponse;
 import com.baesiru.product.domain.product.service.model.store.StoreSimpleResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
@@ -9,4 +10,6 @@ import org.springframework.web.bind.annotation.*;
 public interface StoreFeign {
     @GetMapping(value = "/store/{userId}", headers = "X-Internal=true")
     ResponseEntity<StoreSimpleResponse> getStore(@PathVariable String userId);
+    @GetMapping("/store/product/{id}")
+    ResponseEntity<StoreProductResponse> getProductStore(@PathVariable Long id);
 }

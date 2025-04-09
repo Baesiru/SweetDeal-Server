@@ -15,6 +15,7 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     Optional<Store> findFirstByUserIdAndStatusOrderByUserIdDesc(Long userId, StoreStatus storeStatus);
     Optional<Store> findFirstByIdAndStatusOrderByIdDesc(Long id, StoreStatus status);
     Optional<Store> findFirstByIdAndUserIdAndStatusNotOrderByIdDesc(Long id, Long userId, StoreStatus status);
+    Optional<Store> findFirstByIdOrderByIdDesc(Long id);
 
     @Query(value = "SELECT * " +
             "FROM store s " +

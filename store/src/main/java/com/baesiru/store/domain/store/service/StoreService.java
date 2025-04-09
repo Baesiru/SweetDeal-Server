@@ -78,4 +78,12 @@ public class StoreService {
         }
         return store.get();
     }
+
+    public Store findFirstByIdOrderByIdDesc(Long id) {
+        Optional<Store> store = storeRepository.findFirstByIdOrderByIdDesc(id);
+        if (store.isEmpty()) {
+            throw new StoreNotFoundException(StoreErrorCode.STORE_NOT_FOUND);
+        }
+        return store.get();
+    }
 }

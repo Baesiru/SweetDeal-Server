@@ -6,10 +6,9 @@ import com.baesiru.global.resolver.AuthUser;
 import com.baesiru.product.common.response.MessageResponse;
 import com.baesiru.product.domain.product.business.ProductBusiness;
 import com.baesiru.product.domain.product.controller.model.request.ProductCreateRequest;
+import com.baesiru.product.domain.product.controller.model.response.ProductDetailResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class ProductApiController {
@@ -21,6 +20,19 @@ public class ProductApiController {
                                        @AuthenticatedUser AuthUser authUser) {
         MessageResponse messageResponse = productBusiness.create(productCreateRequest, authUser);
         return Api.OK(messageResponse);
+    }
+
+    @GetMapping("/product/{id}")
+    public Api<ProductDetailResponse> getProductDetail(@PathVariable Long id) {
+        ProductDetailResponse response = productBusiness.getProductDetail(id);
+        return Api.OK(response);
+    }
+
+    @PostMapping("/product/{id}/delete")
+    public Api<MessageResponse> delete(@PathVariable Long id,
+                                       @AuthenticatedUser AuthUser authUser) {
+        MessageResponse response = productBusiness.delete(id, authUser);
+        return Api.OK(response);
     }
 
 
