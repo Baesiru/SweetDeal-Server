@@ -2,6 +2,7 @@ package com.baesiru.product.domain.product.service;
 
 import com.baesiru.product.common.errorcode.ProductErrorCode;
 import com.baesiru.product.common.exception.product.ProductNotFoundException;
+import com.baesiru.product.domain.product.controller.model.response.ProductDetailResponse;
 import com.baesiru.product.domain.product.repository.Product;
 import com.baesiru.product.domain.product.repository.ProductRepository;
 import com.baesiru.product.domain.product.repository.enums.ProductStatus;
@@ -10,6 +11,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -33,5 +35,10 @@ public class ProductService {
             throw new ProductNotFoundException(ProductErrorCode.PRODUCT_NOT_FOUND);
         }
         return product.get();
+    }
+
+    public List<Product> findByStoreIdAndStatusNotOrderByIdDesc(Long storeId) {
+        List<Product> product = productRepository.findByStoreIdAndStatusNotOrderByIdDesc(storeId, ProductStatus.DELETED);
+        return product;
     }
 }

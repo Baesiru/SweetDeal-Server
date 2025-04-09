@@ -10,6 +10,7 @@ import com.baesiru.product.common.exception.product.WrongProductInformationExcep
 import com.baesiru.product.common.response.MessageResponse;
 import com.baesiru.product.domain.product.controller.model.request.ProductCreateRequest;
 import com.baesiru.product.domain.product.controller.model.response.ProductDetailResponse;
+import com.baesiru.product.domain.product.controller.model.response.ProductsResponse;
 import com.baesiru.product.domain.product.repository.Product;
 import com.baesiru.product.domain.product.repository.enums.ProductStatus;
 import com.baesiru.product.domain.product.service.ProductService;
@@ -25,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Business
 public class ProductBusiness {
@@ -98,5 +100,15 @@ public class ProductBusiness {
         productService.save(product);
         MessageResponse response = new MessageResponse("상품이 삭제되었습니다.");
         return response;
+    }
+
+    public ProductsResponse getProducts(Long storeId) {
+        List<Product> products = productService.findByStoreIdAndStatusNotOrderByIdDesc(storeId);
+        List<ProductDetailResponse> productDetailResponses = products.stream()
+                .map(product -> modelMapper.map(product, ProductDetailResponse.class)).toList();
+        ProductsResponse productsResponse = new ProductsResponse();
+        productsResponse.setStoreId(storeId);
+        productsResponse.setProducts(productDetailResponses);
+        return productsResponse;
     }
 }

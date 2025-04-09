@@ -7,8 +7,11 @@ import com.baesiru.product.common.response.MessageResponse;
 import com.baesiru.product.domain.product.business.ProductBusiness;
 import com.baesiru.product.domain.product.controller.model.request.ProductCreateRequest;
 import com.baesiru.product.domain.product.controller.model.response.ProductDetailResponse;
+import com.baesiru.product.domain.product.controller.model.response.ProductsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 public class ProductApiController {
@@ -35,5 +38,10 @@ public class ProductApiController {
         return Api.OK(response);
     }
 
+    @GetMapping("/products/{storeId}")
+    public Api<ProductsResponse> getProducts(@PathVariable Long storeId) {
+        ProductsResponse response = productBusiness.getProducts(storeId);
+        return Api.OK(response);
+    }
 
 }
