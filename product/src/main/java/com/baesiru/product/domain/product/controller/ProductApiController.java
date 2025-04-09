@@ -6,7 +6,6 @@ import com.baesiru.global.resolver.AuthUser;
 import com.baesiru.product.common.response.MessageResponse;
 import com.baesiru.product.domain.product.business.ProductBusiness;
 import com.baesiru.product.domain.product.controller.model.request.ProductCreateRequest;
-import com.baesiru.product.domain.product.repository.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,4 +22,6 @@ public class ProductApiController {
         MessageResponse messageResponse = productBusiness.create(productCreateRequest, authUser);
         return Api.OK(messageResponse);
     }
+
+
 }

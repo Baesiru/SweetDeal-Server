@@ -76,11 +76,8 @@ public class StoreBusiness {
                 .storeId(store.getId())
                 .serverNames(updateRequest.getServerNames())
                 .build();
-        try {
-            imageFeign.assignImages(assignImageRequest);
-        } catch (FeignException e) {
-            throw new FailRegisterStoreException(StoreErrorCode.FAIL_REGISTER_STORE);
-        }
+
+        storeService.publishUpdateToImage(assignImageRequest);
         MessageResponse response = new MessageResponse("가게 수정 요청이 완료되었습니다.");
         return response;
     }
@@ -126,8 +123,8 @@ public class StoreBusiness {
     }
 
     @Transactional
-    public MessageResponse unregister(Long id, AuthUser authUser) {
-        Store store = storeService.findFirstByIdAndStatusNotOrderByIdDesc(id, Long.parseLong(authUser.getUserId()));
+    public MessageResponse unregister(AuthUser authUser) {
+        Store store = storeService.findFirstByUserIdAndStatusNotOrderByUserIdDesc(Long.parseLong(authUser.getUserId()));
         StoreStatus originalStatus = store.getStatus();
 
         store.setStatus(StoreStatus.UNREGISTERED);

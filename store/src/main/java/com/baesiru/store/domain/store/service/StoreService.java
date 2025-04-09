@@ -66,6 +66,10 @@ public class StoreService {
         rabbitTemplate.convertAndSend("image.topic.exchange", "image.store.assign", assignImageRequest);
     }
 
+    public void publishUpdateToImage(AssignImageRequest assignImageRequest) {
+        rabbitTemplate.convertAndSend("image.topic.exchange", "image.store.update", assignImageRequest);
+    }
+
 
     public Store findFirstByUserIdAndStatusOrderByUserIdDesc(Long userId) {
         Optional<Store> store = storeRepository.findFirstByUserIdAndStatusOrderByUserIdDesc(userId, StoreStatus.REGISTERED);

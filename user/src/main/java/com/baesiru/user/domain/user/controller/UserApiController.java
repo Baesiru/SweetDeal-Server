@@ -25,7 +25,7 @@ public class UserApiController {
         return Api.OK(response);
     }
 
-    @PostMapping("/updatePassword")
+    @PostMapping("/user/update")
     public Api<MessageResponse> updatePassword(@RequestBody @Valid UpdatePasswordRequest updatePasswordRequest,
                                        @AuthenticatedUser AuthUser authUser) {
         MessageResponse response = userBusiness.updatePassword(updatePasswordRequest, authUser);

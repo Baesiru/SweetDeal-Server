@@ -54,10 +54,9 @@ public class StoreApiController {
         return Api.OK(response);
     }
 
-    @PostMapping("/store/unregister/{id}")
-    public Api<MessageResponse> unregister(@PathVariable Long id,
-                                           @AuthenticatedUser AuthUser authUser) {
-        MessageResponse response = storeBusiness.unregister(id, authUser);
+    @PostMapping("/store/unregister")
+    public Api<MessageResponse> unregister(@AuthenticatedUser AuthUser authUser) {
+        MessageResponse response = storeBusiness.unregister(authUser);
         return Api.OK(response);
     }
 }
