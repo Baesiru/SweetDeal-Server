@@ -29,6 +29,10 @@ public class ProductService {
         rabbitTemplate.convertAndSend("image.topic.exchange", "image.store.assign", assignImageRequest);
     }
 
+    public void publishUpdateToImage(AssignImageRequest assignImageRequest) {
+        rabbitTemplate.convertAndSend("image.topic.exchange", "image.store.update", assignImageRequest);
+    }
+
     public Product findFirstByIdAndStatusNotOrderByIdDesc(Long id) {
         Optional<Product> product = productRepository.findFirstByIdAndStatusNotOrderByIdDesc(id, ProductStatus.DELETED);
         if (product.isEmpty()) {
@@ -41,4 +45,6 @@ public class ProductService {
         List<Product> product = productRepository.findByStoreIdAndStatusNotOrderByIdDesc(storeId, ProductStatus.DELETED);
         return product;
     }
+
+
 }

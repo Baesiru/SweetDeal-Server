@@ -9,6 +9,7 @@ import com.baesiru.product.common.exception.product.UnauthorizedStoreAccessExcep
 import com.baesiru.product.common.exception.product.WrongProductInformationException;
 import com.baesiru.product.common.response.MessageResponse;
 import com.baesiru.product.domain.product.controller.model.request.ProductCreateRequest;
+import com.baesiru.product.domain.product.controller.model.request.ProductUpdateRequest;
 import com.baesiru.product.domain.product.controller.model.response.ProductDetailResponse;
 import com.baesiru.product.domain.product.controller.model.response.ProductsResponse;
 import com.baesiru.product.domain.product.repository.Product;
@@ -110,5 +111,38 @@ public class ProductBusiness {
         productsResponse.setStoreId(storeId);
         productsResponse.setProducts(productDetailResponses);
         return productsResponse;
+    }
+
+    public MessageResponse update(Long id, ProductUpdateRequest productUpdateRequest,  AuthUser authUser) {
+        if (LocalDateTime.now().isAfter(productUpdateRequest.getExpiredAt())
+                || LocalDateTime.now().isAfter(productUpdateRequest.getSaleClosedAt())) {
+            throw new WrongProductInformationException(ProductErrorCode.WRONG_PRODUCT_INFORMATION);
+        }
+
+        Product product = productService.findFirstByIdAndStatusNotOrderByIdDesc(id);
+        try {
+            ResponseEntity<StoreSimpleResponse> response = storeFeign.getStore(authUser.getUserId());
+        } catch (FeignException e) {
+            throw new UnauthorizedStoreAccessException(ProductErrorCode.UNAUTHORIZED_STORE_ACCESS);
+        }
+        product.setCount(productUpdateRequest.getCount());
+        product.setOriginalPrice(productUpdateRequest.getOriginalPrice());
+        product.setDiscountedPrice(productUpdateRequest.getDiscountedPrice());
+        product.setDescription(productUpdateRequest.getDescription());
+
+        if (product.getExpiredAt().isAfter(productUpdateRequest.getSaleClosedAt())) {
+            product.setExpiredAt(productUpdateRequest.getSaleClosedAt());
+        }
+        productService.save(product);
+        AssignImageRequest assignImageRequest = AssignImageRequest.builder()
+                .kind(ImageKind.PRODUCT)
+                .productId(product.getId())
+                .serverNames(productUpdateRequest.getServerNames())
+                .build();
+        productService.publishUpdateToImage(assignImageRequest);
+
+        MessageResponse messageResponse = new MessageResponse("상품 수정이 완료되었습니다.");
+        return messageResponse;
+
     }
 }

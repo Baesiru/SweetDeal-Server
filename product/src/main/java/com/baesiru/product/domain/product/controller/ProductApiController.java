@@ -6,6 +6,7 @@ import com.baesiru.global.resolver.AuthUser;
 import com.baesiru.product.common.response.MessageResponse;
 import com.baesiru.product.domain.product.business.ProductBusiness;
 import com.baesiru.product.domain.product.controller.model.request.ProductCreateRequest;
+import com.baesiru.product.domain.product.controller.model.request.ProductUpdateRequest;
 import com.baesiru.product.domain.product.controller.model.response.ProductDetailResponse;
 import com.baesiru.product.domain.product.controller.model.response.ProductsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,14 @@ public class ProductApiController {
     @GetMapping("/products/{storeId}")
     public Api<ProductsResponse> getProducts(@PathVariable Long storeId) {
         ProductsResponse response = productBusiness.getProducts(storeId);
+        return Api.OK(response);
+    }
+
+    @PostMapping("/product/{id}/update")
+    public Api<MessageResponse> update(@PathVariable Long id,
+                                       @RequestBody ProductUpdateRequest productUpdateRequest,
+                                       @AuthenticatedUser AuthUser authUser) {
+        MessageResponse response = productBusiness.update(id, productUpdateRequest, authUser);
         return Api.OK(response);
     }
 
