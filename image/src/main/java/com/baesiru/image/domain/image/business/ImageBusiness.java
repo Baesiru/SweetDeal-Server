@@ -185,7 +185,7 @@ public class ImageBusiness {
     }
 
     @Transactional
-    @RabbitListener(queues = "image.store.assign.queue")
+    @RabbitListener(queues = "image.assign.queue")
     public void handlerAssignMessage(AssignImageRequest message) {
         ImageKind imageKind = message.getKind();
         List<String> serverNames = message.getServerNames();
@@ -198,7 +198,7 @@ public class ImageBusiness {
     }
 
     @Transactional
-    @RabbitListener(queues = "image.store.update.queue")
+    @RabbitListener(queues = "image.update.queue")
     public void handlerUpdateMessage(AssignImageRequest message) {
         ImageKind imageKind = message.getKind();
         List<String> serverNames = message.getServerNames();

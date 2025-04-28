@@ -63,11 +63,11 @@ public class StoreService {
     }
 
     public void publishAssignToImage(AssignImageRequest assignImageRequest) {
-        rabbitTemplate.convertAndSend("image.topic.exchange", "image.store.assign", assignImageRequest);
+        rabbitTemplate.convertAndSend("image.topic.exchange", "image.assign", assignImageRequest);
     }
 
     public void publishUpdateToImage(AssignImageRequest assignImageRequest) {
-        rabbitTemplate.convertAndSend("image.topic.exchange", "image.store.update", assignImageRequest);
+        rabbitTemplate.convertAndSend("image.topic.exchange", "image.update", assignImageRequest);
     }
 
 

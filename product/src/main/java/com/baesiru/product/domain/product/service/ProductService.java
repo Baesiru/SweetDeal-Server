@@ -26,11 +26,11 @@ public class ProductService {
     }
 
     public void publishAssignToImage(AssignImageRequest assignImageRequest) {
-        rabbitTemplate.convertAndSend("image.topic.exchange", "image.store.assign", assignImageRequest);
+        rabbitTemplate.convertAndSend("image.topic.exchange", "image.assign", assignImageRequest);
     }
 
     public void publishUpdateToImage(AssignImageRequest assignImageRequest) {
-        rabbitTemplate.convertAndSend("image.topic.exchange", "image.store.update", assignImageRequest);
+        rabbitTemplate.convertAndSend("image.topic.exchange", "image.update", assignImageRequest);
     }
 
     public Product findFirstByIdAndStatusNotOrderByIdDesc(Long id) {
