@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.*;
 public interface StoreFeign {
     @GetMapping(value = "/store/{userId}", headers = "X-Internal=true")
     ResponseEntity<StoreSimpleResponse> getStore(@PathVariable String userId);
-    @GetMapping("/store/product/{id}")
+    @GetMapping(value = "/store/product/{id}", headers = "X-Internal=true")
     ResponseEntity<StoreProductResponse> getProductStore(@PathVariable Long id);
 }

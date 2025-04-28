@@ -1,9 +1,5 @@
-package com.baesiru.product.common.config;
+package com.baesiru.order.common.config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -23,12 +19,6 @@ public class RabbitMqConfig {
     private String password;
     @Value("${spring.rabbitmq.port}")
     private int port;
-    @Value("${spring.rabbitmq.product.exchange}")
-    private String exchange;
-    @Value("${spring.rabbitmq.product.update.queue}")
-    private String updateQueue;
-    @Value("${spring.rabbitmq.product.update.routing-key}")
-    private String updateRoutingKey;
 
     @Bean
     ConnectionFactory connectionFactory() {
@@ -50,23 +40,6 @@ public class RabbitMqConfig {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(messageConverter);
         return rabbitTemplate;
-    }
-
-    @Bean
-    public TopicExchange productExchange() {
-        return new TopicExchange(exchange);
-    }
-
-    @Bean
-    public Queue updateQueue() {
-        return new Queue(updateQueue);
-    }
-
-    @Bean
-    public Binding updateBinding() {
-        return BindingBuilder.bind(updateQueue())
-                .to(productExchange())
-                .with(updateRoutingKey);
     }
 
 }

@@ -8,9 +8,11 @@ import com.baesiru.product.common.exception.product.ProductNotFoundException;
 import com.baesiru.product.common.exception.product.UnauthorizedStoreAccessException;
 import com.baesiru.product.common.exception.product.WrongProductInformationException;
 import com.baesiru.product.common.response.MessageResponse;
+import com.baesiru.product.domain.product.controller.model.request.MessageUpdateRequest;
 import com.baesiru.product.domain.product.controller.model.request.ProductCreateRequest;
 import com.baesiru.product.domain.product.controller.model.request.ProductUpdateRequest;
 import com.baesiru.product.domain.product.controller.model.response.ProductDetailResponse;
+import com.baesiru.product.domain.product.controller.model.response.ProductInternalResponse;
 import com.baesiru.product.domain.product.controller.model.response.ProductsResponse;
 import com.baesiru.product.domain.product.repository.Product;
 import com.baesiru.product.domain.product.repository.enums.ProductStatus;
@@ -22,6 +24,7 @@ import com.baesiru.product.domain.product.service.model.store.StoreProductRespon
 import com.baesiru.product.domain.product.service.model.store.StoreSimpleResponse;
 import feign.FeignException;
 import org.modelmapper.ModelMapper;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -144,5 +147,25 @@ public class ProductBusiness {
         MessageResponse messageResponse = new MessageResponse("상품 수정이 완료되었습니다.");
         return messageResponse;
 
+    }
+
+    public ProductInternalResponse getProductInternal(Long id) {
+        Product product = productService.findFirstByIdAndStatusOrderByIdDesc(id);
+        ProductInternalResponse productInternalResponse = modelMapper.map(product, ProductInternalResponse.class);
+        return productInternalResponse;
+    }
+
+    @Transactional
+    @RabbitListener(queues = "product.update.queue")
+    public void handlerUpdateProduct(MessageUpdateRequest messageUpdateRequest) {
+        Product product = productService.findByIdByPessimisticLock(messageUpdateRequest.getId());
+        if (product.getCount() < messageUpdateRequest.getCount()) {
+            throw new WrongProductInformationException(ProductErrorCode.WRONG_PRODUCT_INFORMATION);
+        }
+        product.setCount(product.getCount() - messageUpdateRequest.getCount());
+        if (product.getCount() == 0L) {
+            product.setStatus(ProductStatus.SOLD);
+        }
+        productService.save(product);
     }
 }

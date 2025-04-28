@@ -1,7 +1,6 @@
-package com.baesiru.product.common.config;
+package com.baesiru.order.common.config;
 
 import com.baesiru.global.interceptor.AuthorizationInterceptor;
-import com.baesiru.global.interceptor.InternalRequestInterceptor;
 import com.baesiru.global.resolver.AuthenticatedUserResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -15,12 +14,8 @@ import java.util.List;
 public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private AuthorizationInterceptor authorizationInterceptor;
-    @Autowired
-    private InternalRequestInterceptor internalRequestInterceptor;
 
-    private final List<String> WHITE_LIST = List.of(
-            "/internal/**"
-    );
+    private final List<String> WHITE_LIST = List.of();
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
@@ -33,7 +28,5 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**")
                 .excludePathPatterns(WHITE_LIST)
         ;
-        registry.addInterceptor(internalRequestInterceptor)
-                .addPathPatterns("/internal/**");
     }
 }

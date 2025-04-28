@@ -47,4 +47,19 @@ public class ProductService {
     }
 
 
+    public Product findFirstByIdAndStatusOrderByIdDesc(Long id) {
+        Optional<Product> product = productRepository.findFirstByIdAndStatusOrderByIdDesc(id, ProductStatus.SALE);
+        if (product.isEmpty()) {
+            throw new ProductNotFoundException(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+        return product.get();
+    }
+
+    public Product findByIdByPessimisticLock(Long id) {
+        Optional<Product> product = productRepository.findByIdByPessimisticLock(id);
+        if (product.isEmpty()) {
+            throw new ProductNotFoundException(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+        return product.get();
+    }
 }
