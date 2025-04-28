@@ -3,6 +3,7 @@ package com.baesiru.order.domain.business;
 import com.baesiru.global.annotation.Business;
 import com.baesiru.global.resolver.AuthUser;
 import com.baesiru.order.common.response.MessageResponse;
+import com.baesiru.order.domain.controller.model.request.CancelRequest;
 import com.baesiru.order.domain.controller.model.request.OrderItemRequest;
 import com.baesiru.order.domain.controller.model.request.OrderCreateRequest;
 import com.baesiru.order.domain.controller.model.request.PaymentRequest;
@@ -150,5 +151,40 @@ public class OrderBusiness {
             orderResponses.add(orderResponse);
         }
         return orderResponses;
+    }
+
+    public MessageResponse cancelOrder(CancelRequest cancelRequest, AuthUser authUser) {
+        Orders order = orderService.findFirstByIdAndStatusOrderByIdDesc(cancelRequest.getId());
+        if (order.getUserId() != Long.parseLong(authUser.getUserId()))
+            throw new IllegalArgumentException("주문자가 다릅니다.");
+        List<OrderItem> orderItems = orderItemService.findByOrderId(order.getId());
+        for (OrderItem orderItem : orderItems) {
+            MessageUpdateRequest messageUpdateRequest = MessageUpdateRequest.builder()
+                    .id(orderItem.getProductId())
+                    .count(orderItem.getCount())
+                    .build();
+            orderItemService.publishCancelProduct(messageUpdateRequest);
+        }
+        order.setStatus(OrderStatus.CANCELED);
+        orderService.save(order);
+        MessageResponse messageResponse = new MessageResponse("주문이 취소되었습니다.");
+        return messageResponse;
+    }
+
+    public MessageResponse cancelStoreOrder(CancelRequest cancelRequest, AuthUser authUser) {
+        try {
+            ResponseEntity<StoreSimpleResponse> response = storeFeign.getStore(authUser.getUserId());
+            StoreSimpleResponse storeSimpleResponse = response.getBody();
+            Orders order = orderService.findFirstByIdAndStatusOrderByIdDesc(cancelRequest.getId());
+            if (order.getStoreId() != storeSimpleResponse.getId()) {
+                throw new IllegalArgumentException("가게가 존재하지 않습니다.");
+            }
+            order.setStatus(OrderStatus.CANCELED);
+            orderService.save(order);
+            MessageResponse messageResponse = new MessageResponse("주문이 취소되었습니다.");
+            return messageResponse;
+        } catch (FeignException e) {
+            throw new IllegalArgumentException("가게가 존재하지 않습니다.");
+        }
     }
 }

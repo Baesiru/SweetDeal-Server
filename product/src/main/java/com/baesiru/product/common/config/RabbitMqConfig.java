@@ -29,6 +29,10 @@ public class RabbitMqConfig {
     private String updateQueue;
     @Value("${spring.rabbitmq.product.update.routing-key}")
     private String updateRoutingKey;
+    @Value("${spring.rabbitmq.product.cancel.queue}")
+    private String cancelQueue;
+    @Value("${spring.rabbitmq.product.cancel.routing-key}")
+    private String cancelRoutingKey;
 
     @Bean
     ConnectionFactory connectionFactory() {
@@ -67,6 +71,18 @@ public class RabbitMqConfig {
         return BindingBuilder.bind(updateQueue())
                 .to(productExchange())
                 .with(updateRoutingKey);
+    }
+
+    @Bean
+    public Queue cancelQueue() {
+        return new Queue(cancelQueue);
+    }
+
+    @Bean
+    public Binding cancelBinding() {
+        return BindingBuilder.bind(cancelQueue())
+                .to(productExchange())
+                .with(cancelRoutingKey);
     }
 
 }

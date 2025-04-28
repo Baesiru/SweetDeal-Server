@@ -5,6 +5,7 @@ import com.baesiru.global.api.Api;
 import com.baesiru.global.resolver.AuthUser;
 import com.baesiru.order.common.response.MessageResponse;
 import com.baesiru.order.domain.business.OrderBusiness;
+import com.baesiru.order.domain.controller.model.request.CancelRequest;
 import com.baesiru.order.domain.controller.model.request.OrderCreateRequest;
 import com.baesiru.order.domain.controller.model.request.PaymentRequest;
 import com.baesiru.order.domain.controller.model.response.OrderCreateResponse;
@@ -47,5 +48,18 @@ public class OrderApiController {
         List<OrderResponse> orderResponses = orderBusiness.getStoreOrder(authUser);
         return Api.OK(orderResponses);
     }
-    
+
+    @PostMapping("/order/cancel")
+    public Api<?> cancelOrder(@RequestBody CancelRequest cancelRequest,
+                              @AuthenticatedUser AuthUser authUser) {
+        MessageResponse response = orderBusiness.cancelOrder(cancelRequest, authUser);
+        return Api.OK(response);
+    }
+
+    @PostMapping("/store/order/cancel")
+    public Api<?> cancelStoreOrder(@RequestBody CancelRequest cancelRequest,
+                                   @AuthenticatedUser AuthUser authUser) {
+        MessageResponse response = orderBusiness.cancelStoreOrder(cancelRequest, authUser);
+        return Api.OK(response);
+    }
 }

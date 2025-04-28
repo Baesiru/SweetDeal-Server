@@ -168,4 +168,15 @@ public class ProductBusiness {
         }
         productService.save(product);
     }
+
+    @Transactional
+    @RabbitListener(queues = "product.cancel.queue")
+    public void handlerCancelProduct(MessageUpdateRequest messageUpdateRequest) {
+        Product product = productService.findByIdByPessimisticLock(messageUpdateRequest.getId());
+        product.setCount(product.getCount() + messageUpdateRequest.getCount());
+        if (product.getStatus() == ProductStatus.SOLD) {
+            product.setStatus(ProductStatus.SALE);
+        }
+        productService.save(product);
+    }
 }

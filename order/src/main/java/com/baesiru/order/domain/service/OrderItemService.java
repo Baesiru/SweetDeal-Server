@@ -27,4 +27,8 @@ public class OrderItemService {
     public void publishUpdateProduct(MessageUpdateRequest messageUpdateRequest) {
         rabbitTemplate.convertAndSend("product.topic.exchange", "product.update", messageUpdateRequest);
     }
+
+    public void publishCancelProduct(MessageUpdateRequest messageUpdateRequest) {
+        rabbitTemplate.convertAndSend("product.topic.exchange", "product.cancel", messageUpdateRequest);
+    }
 }
