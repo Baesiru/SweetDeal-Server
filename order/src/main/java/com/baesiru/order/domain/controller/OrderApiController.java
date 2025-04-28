@@ -8,10 +8,14 @@ import com.baesiru.order.domain.business.OrderBusiness;
 import com.baesiru.order.domain.controller.model.request.OrderCreateRequest;
 import com.baesiru.order.domain.controller.model.request.PaymentRequest;
 import com.baesiru.order.domain.controller.model.response.OrderCreateResponse;
+import com.baesiru.order.domain.controller.model.response.OrderResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 public class OrderApiController {
@@ -31,4 +35,17 @@ public class OrderApiController {
         MessageResponse response = orderBusiness.payment(paymentRequest, authUser);
         return Api.OK(response);
     }
+
+    @GetMapping("/order")
+    public Api<?> getOrder(@AuthenticatedUser AuthUser authUser) {
+        List<OrderResponse> orderResponses = orderBusiness.getOrder(authUser);
+        return Api.OK(orderResponses);
+    }
+
+    @GetMapping("/store/order")
+    public Api<?> getStoreOrder(@AuthenticatedUser AuthUser authUser) {
+        List<OrderResponse> orderResponses = orderBusiness.getStoreOrder(authUser);
+        return Api.OK(orderResponses);
+    }
+    
 }

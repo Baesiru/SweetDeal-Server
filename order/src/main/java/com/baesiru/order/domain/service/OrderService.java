@@ -7,6 +7,7 @@ import com.baesiru.order.domain.repository.enums.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -24,5 +25,15 @@ public class OrderService {
             throw new IllegalArgumentException("주문이 존재하지 않습니다.");
         }
         return order.get();
+    }
+
+    public List<Orders> findByUserId(Long userId) {
+        List<Orders> orders = ordersRepository.findByUserId(userId);
+        return orders;
+    }
+
+    public List<Orders> findByStoreId(Long storeId) {
+        List<Orders> orders = ordersRepository.findByStoreId(storeId);
+        return orders;
     }
 }

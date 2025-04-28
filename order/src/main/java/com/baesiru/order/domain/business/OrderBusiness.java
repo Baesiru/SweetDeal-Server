@@ -7,14 +7,19 @@ import com.baesiru.order.domain.controller.model.request.OrderItemRequest;
 import com.baesiru.order.domain.controller.model.request.OrderCreateRequest;
 import com.baesiru.order.domain.controller.model.request.PaymentRequest;
 import com.baesiru.order.domain.controller.model.response.OrderCreateResponse;
+import com.baesiru.order.domain.controller.model.response.OrderItemResponse;
+import com.baesiru.order.domain.controller.model.response.OrderResponse;
 import com.baesiru.order.domain.repository.Orders;
 import com.baesiru.order.domain.repository.OrderItem;
 import com.baesiru.order.domain.repository.enums.OrderStatus;
 import com.baesiru.order.domain.service.OrderItemService;
 import com.baesiru.order.domain.service.OrderService;
 import com.baesiru.order.domain.service.ProductFeign;
+import com.baesiru.order.domain.service.StoreFeign;
 import com.baesiru.order.domain.service.model.product.MessageUpdateRequest;
 import com.baesiru.order.domain.service.model.product.ProductInternalResponse;
+import com.baesiru.order.domain.service.model.store.StoreSimpleResponse;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.bridge.Message;
 import org.modelmapper.ModelMapper;
@@ -23,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Business
@@ -34,6 +40,8 @@ public class OrderBusiness {
     private OrderItemService orderItemService;
     @Autowired
     private ProductFeign productFeign;
+    @Autowired
+    private StoreFeign storeFeign;
     @Autowired
     private ModelMapper modelMapper;
 
@@ -111,5 +119,36 @@ public class OrderBusiness {
         orderService.save(orders);
         MessageResponse messageResponse = new MessageResponse("결제가 완료되었습니다.");
         return messageResponse;
+    }
+
+    public List<OrderResponse> getOrder(AuthUser authUser) {
+        List<Orders> orders = orderService.findByUserId(Long.parseLong(authUser.getUserId()));
+        List<OrderResponse> orderResponses = getOrderResponses(orders);
+        return orderResponses;
+
+    }
+
+    public List<OrderResponse> getStoreOrder(AuthUser authUser) {
+        try {
+            ResponseEntity<StoreSimpleResponse> response = storeFeign.getStore(authUser.getUserId());
+            StoreSimpleResponse storeSimpleResponse = response.getBody();
+            List<Orders> orders = orderService.findByStoreId(storeSimpleResponse.getId());
+            List<OrderResponse> orderResponses = getOrderResponses(orders);
+            return orderResponses;
+
+        } catch (FeignException e) {
+            throw new IllegalArgumentException("가게가 존재하지 않습니다.");
+        }
+    }
+
+    public List<OrderResponse> getOrderResponses(List<Orders> orders) {
+        List<OrderResponse> orderResponses = new ArrayList<>();
+        for (Orders order : orders) {
+            OrderResponse orderResponse = modelMapper.map(order, OrderResponse.class);
+            List<OrderItem> orderItems = orderItemService.findByOrderId(order.getId());
+            orderResponse.setOrderItemResponses(orderItems.stream().map(orderItem -> modelMapper.map(orderItem, OrderItemResponse.class)).toList());
+            orderResponses.add(orderResponse);
+        }
+        return orderResponses;
     }
 }
