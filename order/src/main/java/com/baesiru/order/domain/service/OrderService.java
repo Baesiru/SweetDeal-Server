@@ -1,5 +1,7 @@
 package com.baesiru.order.domain.service;
 
+import com.baesiru.order.common.errorcode.OrderErrorCode;
+import com.baesiru.order.common.exception.order.OrderNotExistException;
 import com.baesiru.order.domain.controller.model.request.PaymentRequest;
 import com.baesiru.order.domain.repository.Orders;
 import com.baesiru.order.domain.repository.OrdersRepository;
@@ -22,7 +24,7 @@ public class OrderService {
     public Orders findFirstByIdAndStatusOrderByIdDesc(Long id) {
         Optional<Orders> order = ordersRepository.findFirstByIdAndStatusOrderByIdDesc(id, OrderStatus.ORDERED);
         if (order.isEmpty()) {
-            throw new IllegalArgumentException("주문이 존재하지 않습니다.");
+            throw new OrderNotExistException(OrderErrorCode.ORDER_NOT_EXIST);
         }
         return order.get();
     }

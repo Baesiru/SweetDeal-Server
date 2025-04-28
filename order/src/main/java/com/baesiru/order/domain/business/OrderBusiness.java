@@ -2,6 +2,8 @@ package com.baesiru.order.domain.business;
 
 import com.baesiru.global.annotation.Business;
 import com.baesiru.global.resolver.AuthUser;
+import com.baesiru.order.common.errorcode.OrderErrorCode;
+import com.baesiru.order.common.exception.order.*;
 import com.baesiru.order.common.response.MessageResponse;
 import com.baesiru.order.domain.controller.model.request.CancelRequest;
 import com.baesiru.order.domain.controller.model.request.OrderItemRequest;
@@ -23,6 +25,7 @@ import com.baesiru.order.domain.service.model.store.StoreSimpleResponse;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.bridge.Message;
+import org.hibernate.query.Order;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -93,20 +96,20 @@ public class OrderBusiness {
         //결제는 성공했다고 가정
         Orders orders = orderService.findFirstByIdAndStatusOrderByIdDesc(paymentRequest.getOrderId());
         if (orders.getUserId() != Long.parseLong(authUser.getUserId()))
-            throw new IllegalArgumentException("유저 정보가 다릅니다.");
+            throw new UserNotEqualException(OrderErrorCode.USER_NOT_EQUAL);
         List<OrderItem> orderItems = orderItemService.findByOrderId(orders.getId());
         for (OrderItem orderItem : orderItems) {
             //OrderItem들의 재고 확인
             ResponseEntity<ProductInternalResponse> response = productFeign.getProduct(orderItem.getProductId());
             ProductInternalResponse internalResponse = response.getBody();
             if (internalResponse == null) {
-                throw new IllegalArgumentException("상품이 존재하지 않습니다.");
+                throw new ProductNotExistException(OrderErrorCode.PRODUCT_NOT_EXIST);
             }
             if (internalResponse.getCount() < orderItem.getCount()) {
-                throw new IllegalArgumentException("상품의 개수가 모자랍니다.");
+                throw new ProductCountNotEnoughException(OrderErrorCode.PRODUCT_COUNT_NOT_ENOUGH);
             }
             if (internalResponse.getExpiredAt().isBefore(LocalDateTime.now())) {
-                throw new IllegalArgumentException("유효기간이 지났습니다.");
+                throw new ExpiredException(OrderErrorCode.EXPIRED_ERROR);
             }
             //OrderItem들의 재고 감소(메시지큐 + 비관적락)
             MessageUpdateRequest messageUpdateRequest = MessageUpdateRequest.builder()
@@ -138,7 +141,7 @@ public class OrderBusiness {
             return orderResponses;
 
         } catch (FeignException e) {
-            throw new IllegalArgumentException("가게가 존재하지 않습니다.");
+            throw new StoreNotExistException(OrderErrorCode.STORE_NOT_EXIST);
         }
     }
 
@@ -156,7 +159,7 @@ public class OrderBusiness {
     public MessageResponse cancelOrder(CancelRequest cancelRequest, AuthUser authUser) {
         Orders order = orderService.findFirstByIdAndStatusOrderByIdDesc(cancelRequest.getId());
         if (order.getUserId() != Long.parseLong(authUser.getUserId()))
-            throw new IllegalArgumentException("주문자가 다릅니다.");
+            throw new UserNotEqualException(OrderErrorCode.USER_NOT_EQUAL);
         List<OrderItem> orderItems = orderItemService.findByOrderId(order.getId());
         for (OrderItem orderItem : orderItems) {
             MessageUpdateRequest messageUpdateRequest = MessageUpdateRequest.builder()
@@ -177,14 +180,14 @@ public class OrderBusiness {
             StoreSimpleResponse storeSimpleResponse = response.getBody();
             Orders order = orderService.findFirstByIdAndStatusOrderByIdDesc(cancelRequest.getId());
             if (order.getStoreId() != storeSimpleResponse.getId()) {
-                throw new IllegalArgumentException("가게가 존재하지 않습니다.");
+                throw new StoreNotExistException(OrderErrorCode.STORE_NOT_EXIST);
             }
             order.setStatus(OrderStatus.CANCELED);
             orderService.save(order);
             MessageResponse messageResponse = new MessageResponse("주문이 취소되었습니다.");
             return messageResponse;
         } catch (FeignException e) {
-            throw new IllegalArgumentException("가게가 존재하지 않습니다.");
+            throw new StoreNotExistException(OrderErrorCode.STORE_NOT_EXIST);
         }
     }
 }
