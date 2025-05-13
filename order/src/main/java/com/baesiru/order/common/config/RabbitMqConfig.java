@@ -1,5 +1,9 @@
 package com.baesiru.order.common.config;
 
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -19,6 +23,12 @@ public class RabbitMqConfig {
     private String password;
     @Value("${spring.rabbitmq.port}")
     private int port;
+    @Value("${spring.rabbitmq.order.exchange}")
+    private String exchange;
+    @Value("${spring.rabbitmq.order.cancel.queue}")
+    private String cancelQueue;
+    @Value("${spring.rabbitmq.order.cancel.routing-key}")
+    private String cancelRoutingKey;
 
     @Bean
     ConnectionFactory connectionFactory() {
@@ -41,4 +51,22 @@ public class RabbitMqConfig {
         rabbitTemplate.setMessageConverter(messageConverter);
         return rabbitTemplate;
     }
+
+    @Bean
+    public TopicExchange orderExchange() {
+        return new TopicExchange(exchange);
+    }
+
+    @Bean
+    public Queue cancelQueue() {
+        return new Queue(cancelQueue);
+    }
+
+    @Bean
+    public Binding cancelBinding() {
+        return BindingBuilder.bind(cancelQueue())
+                .to(orderExchange())
+                .with(cancelRoutingKey);
+    }
+
 }

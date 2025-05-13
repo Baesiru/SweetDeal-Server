@@ -1,14 +1,12 @@
 package com.baesiru.product.domain.product.controller;
 
 import com.baesiru.product.domain.product.business.ProductBusiness;
+import com.baesiru.product.domain.product.controller.model.request.ProductInternalRequest;
+import com.baesiru.product.domain.product.controller.model.response.ProductInform;
 import com.baesiru.product.domain.product.controller.model.response.ProductInternalResponse;
-import com.baesiru.product.domain.product.repository.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/internal")
@@ -16,9 +14,9 @@ public class ProductInternalController {
     @Autowired
     private ProductBusiness productBusiness;
 
-    @GetMapping("/product/{id}")
-    public ResponseEntity<?> getProduct(@PathVariable Long id) {
-        ProductInternalResponse productInternalResponse = productBusiness.getProductInternal(id);
+    @PostMapping("/product")
+    public ResponseEntity<?> getProduct(@RequestBody ProductInternalRequest productInternalRequest) {
+        ProductInternalResponse productInternalResponse = productBusiness.getProductInternal(productInternalRequest);
         return ResponseEntity.ok(productInternalResponse);
     }
 }

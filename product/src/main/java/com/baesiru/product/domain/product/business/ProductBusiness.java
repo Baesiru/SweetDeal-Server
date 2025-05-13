@@ -10,8 +10,10 @@ import com.baesiru.product.common.exception.product.WrongProductInformationExcep
 import com.baesiru.product.common.response.MessageResponse;
 import com.baesiru.product.domain.product.controller.model.request.MessageUpdateRequest;
 import com.baesiru.product.domain.product.controller.model.request.ProductCreateRequest;
+import com.baesiru.product.domain.product.controller.model.request.ProductInternalRequest;
 import com.baesiru.product.domain.product.controller.model.request.ProductUpdateRequest;
 import com.baesiru.product.domain.product.controller.model.response.ProductDetailResponse;
+import com.baesiru.product.domain.product.controller.model.response.ProductInform;
 import com.baesiru.product.domain.product.controller.model.response.ProductInternalResponse;
 import com.baesiru.product.domain.product.controller.model.response.ProductsResponse;
 import com.baesiru.product.domain.product.repository.Product;
@@ -23,13 +25,18 @@ import com.baesiru.product.domain.product.service.model.image.ImageKind;
 import com.baesiru.product.domain.product.service.model.store.StoreProductResponse;
 import com.baesiru.product.domain.product.service.model.store.StoreSimpleResponse;
 import feign.FeignException;
+import org.hibernate.dialect.lock.PessimisticEntityLockException;
 import org.modelmapper.ModelMapper;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Business
@@ -149,18 +156,31 @@ public class ProductBusiness {
 
     }
 
-    public ProductInternalResponse getProductInternal(Long id) {
-        Product product = productService.findFirstByIdAndStatusOrderByIdDesc(id);
-        ProductInternalResponse productInternalResponse = modelMapper.map(product, ProductInternalResponse.class);
+    public ProductInternalResponse getProductInternal(ProductInternalRequest productInternalRequest) {
+        List<ProductInform> productInforms = new ArrayList<>();
+        for (Long id : productInternalRequest.getProductIds()) {
+            Product product = productService.findFirstByIdAndStatusNotOrderByIdDesc(id);
+            ProductInform productInform = modelMapper.map(product, ProductInform.class);
+            productInforms.add(productInform);
+        }
+        ProductInternalResponse productInternalResponse = new ProductInternalResponse(productInforms);
         return productInternalResponse;
     }
 
     @Transactional
     @RabbitListener(queues = "product.update.queue")
+    @Retryable(
+            value = {PessimisticEntityLockException.class, CannotAcquireLockException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 200)
+    )
     public void handlerUpdateProduct(MessageUpdateRequest messageUpdateRequest) {
         Product product = productService.findByIdByPessimisticLock(messageUpdateRequest.getId());
         if (product.getCount() < messageUpdateRequest.getCount()) {
-            throw new WrongProductInformationException(ProductErrorCode.WRONG_PRODUCT_INFORMATION);
+            // 메시지 큐로 주문 상태 취소 로직 추가
+            productService.publishCancelProduct(null);
+            return;
+            //throw new WrongProductInformationException(ProductErrorCode.WRONG_PRODUCT_INFORMATION);
         }
         product.setCount(product.getCount() - messageUpdateRequest.getCount());
         if (product.getCount() == 0L) {
@@ -179,4 +199,5 @@ public class ProductBusiness {
         }
         productService.save(product);
     }
+
 }

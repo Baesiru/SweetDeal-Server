@@ -20,6 +20,8 @@ import com.baesiru.order.domain.service.OrderService;
 import com.baesiru.order.domain.service.ProductFeign;
 import com.baesiru.order.domain.service.StoreFeign;
 import com.baesiru.order.domain.service.model.product.MessageUpdateRequest;
+import com.baesiru.order.domain.service.model.product.ProductInform;
+import com.baesiru.order.domain.service.model.product.ProductInternalRequest;
 import com.baesiru.order.domain.service.model.product.ProductInternalResponse;
 import com.baesiru.order.domain.service.model.store.StoreSimpleResponse;
 import feign.FeignException;
@@ -34,6 +36,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Business
 @Slf4j
@@ -68,23 +73,33 @@ public class OrderBusiness {
     }
 
     public boolean createOrderItems(List<OrderItemRequest> orderItemRequests, Orders order) {
+        List<Long> productIds = orderItemRequests.stream()
+                .map(OrderItemRequest::getProductId)
+                .toList();
+        ProductInternalRequest productInternalRequest = new ProductInternalRequest(productIds);
+        ResponseEntity<ProductInternalResponse> response = productFeign.getProduct(productInternalRequest);
+
+        ProductInternalResponse productInternalResponse = response.getBody();
+        if (productInternalResponse == null) {
+            return false;
+        }
+
+        Map<Long, ProductInform> productInformMap = productInternalResponse.getProductInforms().stream()
+                .collect(Collectors.toMap(ProductInform::getId, Function.identity()));
+
         for (OrderItemRequest orderItemRequest : orderItemRequests) {
-            ResponseEntity<ProductInternalResponse> response = productFeign.getProduct(orderItemRequest.getProductId());
-            ProductInternalResponse internalResponse = response.getBody();
-            if (internalResponse == null) {
+            ProductInform productInform = productInformMap.get(orderItemRequest.getProductId());
+            if (productInform.getCount() < orderItemRequest.getCount()) {
                 return false;
             }
-            if (internalResponse.getCount() < orderItemRequest.getCount()) {
-                return false;
-            }
-            if (internalResponse.getExpiredAt().isBefore(LocalDateTime.now())) {
+            if (productInform.getExpiredAt().isBefore(LocalDateTime.now())) {
                 return false;
             }
             OrderItem orderItem = new OrderItem();
             orderItem.setOrderId(order.getId());
             orderItem.setCount(orderItemRequest.getCount());
             orderItem.setProductId(orderItemRequest.getProductId());
-            orderItem.setPrice(internalResponse.getDiscountedPrice());
+            orderItem.setPrice(productInform.getDiscountedPrice());
             orderItem.setTotalPrice(orderItem.getCount() * orderItem.getPrice());
             order.setTotalPrice(order.getTotalPrice() + orderItem.getTotalPrice());
             orderItemService.save(orderItem);
@@ -98,17 +113,27 @@ public class OrderBusiness {
         if (orders.getUserId() != Long.parseLong(authUser.getUserId()))
             throw new UserNotEqualException(OrderErrorCode.USER_NOT_EQUAL);
         List<OrderItem> orderItems = orderItemService.findByOrderId(orders.getId());
+
+        List<Long> productIds = orderItems.stream()
+                .map(OrderItem::getProductId)
+                .toList();
+        ProductInternalRequest productInternalRequest = new ProductInternalRequest(productIds);
+        ResponseEntity<ProductInternalResponse> response = productFeign.getProduct(productInternalRequest);
+        ProductInternalResponse productInternalResponse = response.getBody();
+
+        if (productInternalResponse == null) {
+            throw new ProductNotExistException(OrderErrorCode.PRODUCT_NOT_EXIST);
+        }
+
+        Map<Long, ProductInform> productInformMap = productInternalResponse.getProductInforms().stream()
+                .collect(Collectors.toMap(ProductInform::getId, Function.identity()));
+
         for (OrderItem orderItem : orderItems) {
-            //OrderItem들의 재고 확인
-            ResponseEntity<ProductInternalResponse> response = productFeign.getProduct(orderItem.getProductId());
-            ProductInternalResponse internalResponse = response.getBody();
-            if (internalResponse == null) {
-                throw new ProductNotExistException(OrderErrorCode.PRODUCT_NOT_EXIST);
-            }
-            if (internalResponse.getCount() < orderItem.getCount()) {
+            ProductInform productInform = productInformMap.get(orderItem.getProductId());
+            if (productInform.getCount() < orderItem.getCount()) {
                 throw new ProductCountNotEnoughException(OrderErrorCode.PRODUCT_COUNT_NOT_ENOUGH);
             }
-            if (internalResponse.getExpiredAt().isBefore(LocalDateTime.now())) {
+            if (productInform.getExpiredAt().isBefore(LocalDateTime.now())) {
                 throw new ExpiredException(OrderErrorCode.EXPIRED_ERROR);
             }
             //OrderItem들의 재고 감소(메시지큐 + 비관적락)
@@ -161,6 +186,9 @@ public class OrderBusiness {
         if (order.getUserId() != Long.parseLong(authUser.getUserId()))
             throw new UserNotEqualException(OrderErrorCode.USER_NOT_EQUAL);
         List<OrderItem> orderItems = orderItemService.findByOrderId(order.getId());
+        //List<MessageUpdateRequest> messageUpdateRequests = orderItems.stream()
+        //        .map(orderItem -> modelMapper.map(orderItem, MessageUpdateRequest.class))
+        //        .toList();
         for (OrderItem orderItem : orderItems) {
             MessageUpdateRequest messageUpdateRequest = MessageUpdateRequest.builder()
                     .id(orderItem.getProductId())

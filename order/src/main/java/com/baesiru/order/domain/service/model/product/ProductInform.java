@@ -5,11 +5,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductInternalResponse {
-    private List<ProductInform> productInforms;
+public class ProductInform {
+    private Long id;
+    private Long count;
+    private Long discountedPrice;
+    private ProductStatus status;
+    private LocalDateTime expiredAt;
 }
