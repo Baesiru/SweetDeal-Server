@@ -26,8 +26,6 @@ import com.baesiru.order.domain.service.model.product.ProductInternalResponse;
 import com.baesiru.order.domain.service.model.store.StoreSimpleResponse;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.bridge.Message;
-import org.hibernate.query.Order;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -136,13 +134,12 @@ public class OrderBusiness {
             if (productInform.getExpiredAt().isBefore(LocalDateTime.now())) {
                 throw new ExpiredException(OrderErrorCode.EXPIRED_ERROR);
             }
-            //OrderItem들의 재고 감소(메시지큐 + 비관적락)
-            MessageUpdateRequest messageUpdateRequest = MessageUpdateRequest.builder()
-                    .id(orderItem.getProductId())
-                    .count(orderItem.getCount())
-                    .build();
-            orderItemService.publishUpdateProduct(messageUpdateRequest);
         }
+        //OrderItem들의 재고 감소(메시지큐 + 비관적락)
+        MessageUpdateRequest messageUpdateRequest = new MessageUpdateRequest(orderItems.stream()
+                .map(orderItem -> modelMapper.map(orderItem, OrderItemRequest.class))
+                .toList());
+        orderItemService.publishUpdateProduct(messageUpdateRequest);
         //Orders의 상태 COMPLETED로 변경
         orders.setStatus(OrderStatus.COMPLETED);
         orderService.save(orders);
@@ -186,16 +183,12 @@ public class OrderBusiness {
         if (order.getUserId() != Long.parseLong(authUser.getUserId()))
             throw new UserNotEqualException(OrderErrorCode.USER_NOT_EQUAL);
         List<OrderItem> orderItems = orderItemService.findByOrderId(order.getId());
-        //List<MessageUpdateRequest> messageUpdateRequests = orderItems.stream()
-        //        .map(orderItem -> modelMapper.map(orderItem, MessageUpdateRequest.class))
-        //        .toList();
-        for (OrderItem orderItem : orderItems) {
-            MessageUpdateRequest messageUpdateRequest = MessageUpdateRequest.builder()
-                    .id(orderItem.getProductId())
-                    .count(orderItem.getCount())
-                    .build();
-            orderItemService.publishCancelProduct(messageUpdateRequest);
-        }
+
+        MessageUpdateRequest messageUpdateRequest = new MessageUpdateRequest(orderItems.stream()
+                .map(orderItem -> modelMapper.map(orderItem, OrderItemRequest.class))
+                .toList());
+        orderItemService.publishCancelProduct(messageUpdateRequest);
+
         order.setStatus(OrderStatus.CANCELED);
         orderService.save(order);
         MessageResponse messageResponse = new MessageResponse("주문이 취소되었습니다.");

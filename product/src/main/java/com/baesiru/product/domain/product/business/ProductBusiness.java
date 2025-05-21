@@ -22,6 +22,7 @@ import com.baesiru.product.domain.product.service.ProductService;
 import com.baesiru.product.domain.product.service.StoreFeign;
 import com.baesiru.product.domain.product.service.model.image.AssignImageRequest;
 import com.baesiru.product.domain.product.service.model.image.ImageKind;
+import com.baesiru.product.domain.product.service.model.order.OrderItemRequest;
 import com.baesiru.product.domain.product.service.model.store.StoreProductResponse;
 import com.baesiru.product.domain.product.service.model.store.StoreSimpleResponse;
 import feign.FeignException;
@@ -175,29 +176,35 @@ public class ProductBusiness {
             backoff = @Backoff(delay = 200)
     )
     public void handlerUpdateProduct(MessageUpdateRequest messageUpdateRequest) {
-        Product product = productService.findByIdByPessimisticLock(messageUpdateRequest.getId());
-        if (product.getCount() < messageUpdateRequest.getCount()) {
-            // 메시지 큐로 주문 상태 취소 로직 추가
-            productService.publishCancelProduct(null);
-            return;
-            //throw new WrongProductInformationException(ProductErrorCode.WRONG_PRODUCT_INFORMATION);
+        List<OrderItemRequest> orderItemRequests = messageUpdateRequest.getOrderItemRequests();
+        for (OrderItemRequest orderItemRequest : orderItemRequests) {
+            Product product = productService.findByIdByPessimisticLock(orderItemRequest.getProductId());
+            if (product.getCount() < orderItemRequest.getCount()) {
+                // 메시지 큐로 주문 상태 취소 로직 추가
+                productService.publishCancelProduct(null);
+                throw new WrongProductInformationException(ProductErrorCode.WRONG_PRODUCT_INFORMATION);
+            }
+            product.setCount(product.getCount() - orderItemRequest.getCount());
+            if (product.getCount() == 0L) {
+                product.setStatus(ProductStatus.SOLD);
+            }
+            productService.save(product);
         }
-        product.setCount(product.getCount() - messageUpdateRequest.getCount());
-        if (product.getCount() == 0L) {
-            product.setStatus(ProductStatus.SOLD);
-        }
-        productService.save(product);
+
     }
 
     @Transactional
     @RabbitListener(queues = "product.cancel.queue")
     public void handlerCancelProduct(MessageUpdateRequest messageUpdateRequest) {
-        Product product = productService.findByIdByPessimisticLock(messageUpdateRequest.getId());
-        product.setCount(product.getCount() + messageUpdateRequest.getCount());
-        if (product.getStatus() == ProductStatus.SOLD) {
-            product.setStatus(ProductStatus.SALE);
+        List<OrderItemRequest> orderItemRequests = messageUpdateRequest.getOrderItemRequests();
+        for (OrderItemRequest orderItemRequest : orderItemRequests) {
+            Product product = productService.findByIdByPessimisticLock(orderItemRequest.getProductId());
+            product.setCount(product.getCount() + orderItemRequest.getCount());
+            if (product.getStatus() == ProductStatus.SOLD) {
+                product.setStatus(ProductStatus.SALE);
+            }
+            productService.save(product);
         }
-        productService.save(product);
     }
 
 }
