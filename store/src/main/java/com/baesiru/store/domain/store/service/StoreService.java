@@ -49,8 +49,8 @@ public class StoreService {
         return store.get();
     }
 
-    public List<Store> findStoresWithinRadius(BigDecimal latitude, BigDecimal longitude) {
-        List<Store> stores = storeRepository.findStoresWithinRadius(latitude, longitude, BigDecimal.valueOf(1000.0), StoreStatus.REGISTERED.name());
+    public List<Store> findStoresWithinRadius(BigDecimal latitude, BigDecimal longitude, BigDecimal radius) {
+        List<Store> stores = storeRepository.findStoresWithinRadius(latitude, longitude, radius, StoreStatus.REGISTERED.name());
         return stores;
     }
 

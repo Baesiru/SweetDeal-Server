@@ -15,4 +15,6 @@ public class LocationRequest {
     private BigDecimal latitude;
     @NotBlank(message = "필수 입력 사항입니다.")
     private BigDecimal longitude;
+    @NotBlank(message = "필수 입력 사항입니다.")
+    private BigDecimal radius;
 }

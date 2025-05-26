@@ -112,7 +112,7 @@ public class StoreBusiness {
     }
 
     public List<NearbyStoreResponse> getNearbyStore(LocationRequest locationRequest) {
-        List<Store> stores = storeService.findStoresWithinRadius(locationRequest.getLatitude(), locationRequest.getLongitude());
+        List<Store> stores = storeService.findStoresWithinRadius(locationRequest.getLatitude(), locationRequest.getLongitude(), locationRequest.getRadius());
         List<NearbyStoreResponse> response = stores.stream()
                 .map(store -> modelMapper.map(store, NearbyStoreResponse.class))
                 .toList();
